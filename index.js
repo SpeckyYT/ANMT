@@ -15,6 +15,7 @@ const CROP_HEIGHT = 0;
 const MAX_PIXELS = 999; // 999 is the max amount of usable colors in 2.1
 const SKIP_EXTRACTING = false;
 const SKIP_PROCESSING = false;
+const CUSTOM_DURATION = 0; // 0 if it should take the file's duration
 
 const createFolder = (folder) => {
     if(!fs.existsSync(folder)) return fs.mkdirSync(folder);
@@ -52,7 +53,7 @@ const betaJS = (prom) => {
         fileData.name = fileData.name.replace(/[^a-zA-Z0-9_-]+/,'') || 'speckywashere';
         const framesFolder = path.join(videosFolder,'frames');
         createFolder(framesFolder);
-        const thisFramesFolder = path.join(framesFolder,);
+        const thisFramesFolder = path.join(framesFolder,fileData.name);
         createFolder(thisFramesFolder);
         promises.push(
             new Promise(res => {
@@ -71,6 +72,7 @@ const betaJS = (prom) => {
                 const frames = filehound.create()
                 .path(thisFramesFolder)
                 .ext('png')
+                .depth(0)
                 .findSync();
 
                 const firstFrame = await jimp.read(frames[0]);
@@ -109,7 +111,9 @@ const betaJS = (prom) => {
             })
             .then(async (frames=[]) => {
                 const videoData = await betaJS(ffprobe_simple(filePath));
-                const fps = (frames.length || videoData.video.frames) / videoData.duration;
+                const duration = CUSTOM_DURATION > 0 ? CUSTOM_DURATION : videoData.duration;
+                const frameCount = frames.length || videoData.video.frames;
+                const fps = frameCount / duration;
                 const outputFolder = path.join(videosFolder,'output');
                 createFolder(outputFolder);
                 frames.unshift(
