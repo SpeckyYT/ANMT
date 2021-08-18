@@ -1,0 +1,6 @@
+# Video2GD
+/videos
+
+# Node
+/node_modules
+package-lock.json

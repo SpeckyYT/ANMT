@@ -1,0 +1,14 @@
+{
+  "name": "video2gd",
+  "version": "0.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "filehound": "^1.17.4",
+    "get-pixels": "^3.3.3",
+    "jimp": "^0.16.1",
+    "js-ffmpeg": "0.0.29",
+    "piscina": "^3.1.0"
+  },
+  "author": "SpeckyYT",
+  "license": "MIT"
+}
