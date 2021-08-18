@@ -42,6 +42,13 @@ Check out `videos/output/`, and look for the file you generated.
 Edit the variable `filename` in `index.spwn` to the name of the desired file in `videos/output/` (without `.txt`).
 Now you can run `spwn build index.spwn`, and slowly but surely it will build your video to your latest Geometry Dash level.
 
+## FAQ
+
+### How do I make the program stop using a file in the `videos` folder?
+
+Create a sub-folder named in any way and put the video there.
+Otherwise, you can delete it, or remove it from the videos folder.
+
 ## Supported video/animation formats
 
 - [x] mp4
