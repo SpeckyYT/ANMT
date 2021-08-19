@@ -17,7 +17,7 @@ let fps = data[2] as @number
 let scaling = 10/height
 
 let startdelay = 2
-let enddelay = 3
+let enddelay = 1
 
 let mySpeed = speed(1)
 
