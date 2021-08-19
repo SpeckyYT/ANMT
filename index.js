@@ -15,7 +15,6 @@ const CROP_HEIGHT = 0;
 const MAX_PIXELS = 999; // 999 is the max amount of usable colors in 2.1
 const SKIP_EXTRACTING = false;
 const SKIP_PROCESSING = false;
-const CUSTOM_DURATION = 0; // 0 if it should take the file's duration
 
 const createFolder = (folder) => {
     if(!fs.existsSync(folder)) return fs.mkdirSync(folder);
@@ -111,9 +110,7 @@ const betaJS = (prom) => {
             })
             .then(async (frames=[]) => {
                 const videoData = await betaJS(ffprobe_simple(filePath));
-                const duration = CUSTOM_DURATION > 0 ? CUSTOM_DURATION : videoData.duration;
-                const frameCount = frames.length || videoData.video.frames;
-                const fps = frameCount / duration;
+                const fps = videoData.video.frames / videoData.duration;
                 const outputFolder = path.join(videosFolder,'output');
                 createFolder(outputFolder);
                 frames.unshift(
