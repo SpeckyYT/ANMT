@@ -1,6 +1,6 @@
-# Video2GD
+# ANMT
 
-Converts videos to GD!
+Converts videos to Geometry Dash levels!
 
 ## Disclaimer
 
