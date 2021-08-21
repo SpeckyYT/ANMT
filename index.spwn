@@ -30,22 +30,14 @@ videoCanvas = canvas::new(
     screen
 )
 
-rgbToInt = (red:@number,green:@number,blue:@number){
-    return red*65536 + green*256 + blue 
-}
-
-let previousFrame = []
-let white = rgbToInt(255,255,255);
-for _ in ..(width*height) {
-    previousFrame.push(white)
-}
-
 for index in ..frames.length {
     $.print(index,' frames done')
     let frame = frames[index]
     let toChange = []
     for pixel in frame.split(':') {
         pixelData = pixel.split(',')
+        
+        if pixelData.length < 2 {continue}
 
         x = pixelData[0] as @number
         y = pixelData[1] as @number
@@ -54,9 +46,6 @@ for index in ..frames.length {
         b = pixelData[4] as @number
 
         key = y*width+x
-        color = rgbToInt(r,g,b)
-        if previousFrame[key] == color {continue}
-        previousFrame[key] = color
 
         toChange.push([
             videoCanvas.colors[x][height-(y+1)],
@@ -64,15 +53,16 @@ for index in ..frames.length {
         ])
     }
     for i in ..toChange.length {
+        currentData = toChange[i]
         $.add(obj{
             OBJ_ID: 899,
             X:  (index * 1/fps + startdelay) * (30 * mySpeed),
             Y: 30*i,
             DURATION: 0,
-            TARGET_COLOR: toChange[i][0],
-            TRIGGER_RED: toChange[i][1],
-            TRIGGER_GREEN: toChange[i][2],
-            TRIGGER_BLUE: toChange[i][3],
+            TARGET_COLOR: currentData[0],
+            TRIGGER_RED: currentData[1],
+            TRIGGER_GREEN: currentData[2],
+            TRIGGER_BLUE: currentData[3],
         })
 
     }

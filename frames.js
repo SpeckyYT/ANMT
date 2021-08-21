@@ -1,5 +1,6 @@
 const { promisify } = require('util');
 const jimp = require('jimp');
+const read = promisify(jimp.read);
 
 function flattenNumber(number,colorRound){
     return Math.round(number/colorRound)*colorRound;
@@ -15,6 +16,7 @@ function flattenColor(color,colorRound){
 
 module.exports = async ({
     path,
+    previousPath,
     width,
     height,
     CROP_X,
@@ -23,7 +25,7 @@ module.exports = async ({
     CROP_HEIGHT,
     COLOR_PRECISION,
 }) => {
-    const image = (await promisify(jimp.read)(path));
+    const image = await read(path);
     const resized = image.crop(
         CROP_X,
         CROP_Y,
@@ -32,13 +34,31 @@ module.exports = async ({
     )
     .resize(width,height);
 
+    const prevImage = previousPath && await read(previousPath);
+    const prevResized = prevImage && prevImage.crop(
+        CROP_X,
+        CROP_Y,
+        CROP_WIDTH || prevImage.getWidth(),
+        CROP_HEIGHT || prevImage.getHeight(),
+    )
+    .resize(width,height);
+
     let output = []
 
     for(let x = 0; x < width; x++){
         for(let y = 0; y < height; y++){
+            function send(){
+                output.push([x,y,color.r,color.g,color.b].join(','));
+            }
             const int = resized.getPixelColor(x,y);
             const color = flattenColor(jimp.intToRGBA(int),COLOR_PRECISION);
-            output.push([x,y,color.r,color.g,color.b].join(','));
+            if(prevResized){
+                const prevInt = prevResized.getPixelColor(x,y);
+                const prevColor = flattenColor(jimp.intToRGBA(prevInt),COLOR_PRECISION);
+                if(color.r != prevColor.r || color.g != prevColor.g || color.b != prevColor.b){
+                    send()
+                }
+            } else send()
         }
     }
 

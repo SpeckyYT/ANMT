@@ -12,7 +12,8 @@ const CROP_Y = 0;
 const CROP_WIDTH = 0;
 const CROP_HEIGHT = 0;
 
-const MAX_PIXELS = 999; // 999 is the max amount of usable colors in 2.1
+const MAX_PIXELS = 999;     // 999 is the max amount of usable colors in 2.1
+const FILENAMENUMBERS = 5;  // e.g. filename00001.png
 const SKIP_EXTRACTING = false;
 const SKIP_PROCESSING = false;
 
@@ -62,7 +63,10 @@ const betaJS = (prom) => {
                     [
                         '-i',
                         filePath,
-                        path.join(thisFramesFolder,`${fileData.name}%05d.png`)
+                        path.join(
+                            thisFramesFolder,
+                            `${fileData.name}%${`${FILENAMENUMBERS}`.padStart(2,'0')}d.png`
+                        )
                     ]
                 )
                 .on('close', res)
@@ -91,11 +95,12 @@ const betaJS = (prom) => {
                     filename: path.join(process.cwd(),'frames.js'),
                 });
                 const promises = []
-                for(const frame of frames)
+                for(let frame = 0; frame < frames.length; frame++){
                     promises.push(
                         pool.run(
                             {
-                                path: frame,
+                                path: frames[frame],
+                                previousPath: frames[frame-1],
                                 width: global.width,
                                 height: global.height,
                                 CROP_X,
@@ -106,6 +111,7 @@ const betaJS = (prom) => {
                             }
                         )
                     );
+                }
                 return Promise.all(promises);
             })
             .then(async (frames=[]) => {
@@ -113,6 +119,7 @@ const betaJS = (prom) => {
                 const fps = videoData.video.frames / videoData.duration;
                 const outputFolder = path.join(videosFolder,'output');
                 createFolder(outputFolder);
+                const outputFile = path.join(outputFolder,`${fileData.name}.txt`);
                 frames.unshift(
                     [
                         global.width,
@@ -121,11 +128,10 @@ const betaJS = (prom) => {
                     ]
                     .join(',')
                 )
-                const string = frames.join('\n');
-                fs.writeFileSync(
-                    path.join(outputFolder,`${fileData.name}.txt`),
-                    string
-                )
+                fs.writeFileSync(outputFile,'');
+                for(const frame of frames){
+                    fs.appendFileSync(outputFile,`${frame}\n`);
+                }
             })
         )
     }
