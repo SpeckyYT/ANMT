@@ -14,6 +14,11 @@ function flattenColor(color,colorRound){
     return newColor
 }
 
+function areEqual(obj1,obj2){
+    return !Object.entries(obj1)
+    .some(v => obj2[v[0]] != v[1])
+}
+
 module.exports = async ({
     path,
     previousPath,
@@ -55,10 +60,10 @@ module.exports = async ({
             if(prevResized){
                 const prevInt = prevResized.getPixelColor(x,y);
                 const prevColor = flattenColor(jimp.intToRGBA(prevInt),COLOR_PRECISION);
-                if(color.r != prevColor.r || color.g != prevColor.g || color.b != prevColor.b){
-                    send()
-                }
-            } else send()
+                if(!areEqual(color,prevColor)) send();
+            }else{
+                if(!areEqual(color,{r:255,g:255,b:255})) send();
+            }
         }
     }
 
