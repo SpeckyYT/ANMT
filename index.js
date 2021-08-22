@@ -118,7 +118,7 @@ const betaJS = (prom) => {
             })
             .then(async (frames=[]) => {
                 const videoData = await betaJS(ffprobe_simple(filePath));
-                const fps = videoData.video.frames / videoData.duration;
+                const fps = (videoData.video.frames || frames.length) / videoData.duration;
                 const outputFolder = path.join(videosFolder,'output');
                 createFolder(outputFolder);
                 const outputFile = path.join(outputFolder,`${fileData.name}.txt`);
