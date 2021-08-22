@@ -78,6 +78,8 @@ const betaJS = (prom) => {
                 .depth(0)
                 .findSync();
 
+                if(!frames.length) throw "No frames found";
+
                 const firstFrame = await jimp.read(frames[0]);
 
                 const originalWidth = (CROP_WIDTH||firstFrame.getWidth()) - CROP_X;
