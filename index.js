@@ -11,6 +11,7 @@ const CROP_X = 0;   // all 0 for disable
 const CROP_Y = 0;
 const CROP_WIDTH = 0;
 const CROP_HEIGHT = 0;
+const OPTIMISE_FIRST_FRAME = false;
 
 const MAX_PIXELS = 999;     // 999 is the max amount of usable colors in 2.1
 const FILENAMENUMBERS = 5;  // e.g. filename00001.png
@@ -110,6 +111,7 @@ const betaJS = (prom) => {
                                 CROP_HEIGHT,
                                 CROP_WIDTH,
                                 COLOR_PRECISION: colorPrecision,
+                                OPTIMISE_FIRST_FRAME,
                             }
                         )
                     );

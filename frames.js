@@ -29,6 +29,7 @@ module.exports = async ({
     CROP_WIDTH,
     CROP_HEIGHT,
     COLOR_PRECISION,
+    OPTIMISE_FIRST_FRAME,
 }) => {
     const image = await read(path);
     const resized = image.crop(
@@ -62,7 +63,11 @@ module.exports = async ({
                 const prevColor = flattenColor(jimp.intToRGBA(prevInt),COLOR_PRECISION);
                 if(!areEqual(color,prevColor)) send();
             }else{
-                if(!areEqual(color,{r:255,g:255,b:255})) send();
+                if(OPTIMISE_FIRST_FRAME){
+                    if(!areEqual(color,{r:255,g:255,b:255})) send();
+                }else{
+                    send()
+                }
             }
         }
     }
