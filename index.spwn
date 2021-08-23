@@ -6,6 +6,7 @@ canvas = import '../canvas/canvas.spwn'
 speed = import '../speed/speed.spwn'
 
 filename = 'changeyourfilenamehere'
+use_groups = false
 
 let file = $.readfile('./videos/output/'+filename+'.txt')
 let frames = file.split('\n')
@@ -52,19 +53,28 @@ for index in ..frames.length {
             r,g,b
         ])
     }
-    for i in ..toChange.length {
-        currentData = toChange[i]
-        $.add(obj{
-            OBJ_ID: 899,
-            X:  (index * 1/fps + startdelay) * (30 * mySpeed),
-            Y: 30*i,
-            DURATION: 0,
-            TARGET_COLOR: currentData[0],
-            TRIGGER_RED: currentData[1],
-            TRIGGER_GREEN: currentData[2],
-            TRIGGER_BLUE: currentData[3],
+    currentTime = index * 1/fps + startdelay
+    if use_groups {
+        call_with_delay(currentTime, !{
+            for i in ..toChange.length {
+                currentData = toChange[i]
+                currentData[0].set(currentData[1],currentData[2],currentData[3])
+            }
         })
-
+    } else {
+        for i in ..toChange.length {
+            currentData = toChange[i]
+            $.add(obj{
+                OBJ_ID: 899,
+                X:  currentTime * (30 * mySpeed),
+                Y: 30*i,
+                DURATION: 0,
+                TARGET_COLOR: currentData[0],
+                TRIGGER_RED: currentData[1],
+                TRIGGER_GREEN: currentData[2],
+                TRIGGER_BLUE: currentData[3],
+            })
+        }
     }
 }
 
