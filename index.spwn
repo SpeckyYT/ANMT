@@ -8,7 +8,10 @@ speed = import '../speed/speed.spwn'
 filename = 'changeyourfilenamehere'
 use_groups = false
 
-let file = $.readfile('./videos/output/'+filename+'.txt')
+let file = regex("\\r").replace(
+    $.readfile('./videos/output/'+filename+'.txt'),
+    ''
+)
 let frames = file.split('\n')
 let data = frames.shift().split(',')
 
@@ -37,16 +40,14 @@ for index in ..frames.length {
     let toChange = []
     for pixel in frame.split(':') {
         pixelData = pixel.split(',')
-        
-        if pixelData.length < 2 {continue}
+
+        if pixelData.length <= 4 {continue}
 
         x = pixelData[0] as @number
         y = pixelData[1] as @number
         r = pixelData[2] as @number
         g = pixelData[3] as @number
         b = pixelData[4] as @number
-
-        key = y*width+x
 
         toChange.push([
             videoCanvas.colors[x][height-(y+1)],
