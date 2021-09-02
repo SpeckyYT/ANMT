@@ -68,7 +68,7 @@ for index in ..frames.length {
             $.add(obj{
                 OBJ_ID: 899,
                 X:  currentTime * (30 * mySpeed),
-                Y: 30*i,
+                Y: 30*i+30*20,
                 DURATION: 0,
                 TARGET_COLOR: currentData[0],
                 TRIGGER_RED: currentData[1],
