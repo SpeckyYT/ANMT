@@ -158,6 +158,24 @@ const betaJS = (prom) => {
                 }
                 log('writing','done')
             })
+            .then(async () => {
+                log('counting','start')
+
+                const outputFolder = path.join(videosFolder,'output');
+                createFolder(outputFolder);
+                const outputFile = path.join(outputFolder,`${fileData.name}.txt`);
+
+                const file = fs.readFileSync(outputFile,{encoding:'utf-8'});
+                const lines = file.split(/\r?\n/g);
+
+                let objects = 0;
+
+                for(let index = 1; index < lines.length; index++){
+                    objects += lines[index].split(':').filter(v => v).length
+                }
+                log('counting',`${objects} color triggers`)
+                log('counting','done')
+            })
         )
     }
     await Promise.all(promises);
