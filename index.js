@@ -56,9 +56,15 @@ const betaJS = (prom) => {
         createFolder(framesFolder);
         const thisFramesFolder = path.join(framesFolder,fileData.name);
         createFolder(thisFramesFolder);
+
+        function log(name,description){
+            console.log(`[${name.toUpperCase()}] (${fileData.name}): ${description}`);
+        }
+
         promises.push(
             new Promise(res => {
                 if(SKIP_EXTRACTING) return res();
+                log('extracting','start');
                 cp.spawn(
                     'ffmpeg',
                     [
@@ -70,7 +76,10 @@ const betaJS = (prom) => {
                         )
                     ]
                 )
-                .on('close', res)
+                .on('close', () => {
+                    log('extracting','done');
+                    res()
+                })
             })
             .then(async () => {
                 const frames = filehound.create()
@@ -93,7 +102,7 @@ const betaJS = (prom) => {
                 // ^ this is not optimal, but it works fine atm
 
                 if(SKIP_PROCESSING) return;
-
+                log('preprocessing','start')
                 const pool = new Piscina({
                     filename: path.join(process.cwd(),'frames.js'),
                 });
@@ -114,11 +123,22 @@ const betaJS = (prom) => {
                                 OPTIMISE_FIRST_FRAME,
                             }
                         )
+                        .then(data => {
+                            log('preprocessing',`frame #${frame} done`)
+                            return data;
+                        })
                     );
                 }
-                return Promise.all(promises);
+                return Promise.all(promises)
+                .then(data => {
+                    log('preprocessing','done')
+                    return data
+                })
             })
             .then(async (frames=[]) => {
+                if(SKIP_PROCESSING) return;
+
+                log('writing','start')
                 const videoData = await betaJS(ffprobe_simple(filePath));
                 const fps = (videoData.video.frames || frames.length) / videoData.duration;
                 const outputFolder = path.join(videosFolder,'output');
@@ -136,6 +156,7 @@ const betaJS = (prom) => {
                 for(const frame of frames){
                     fs.appendFileSync(outputFile,`${frame}\n`);
                 }
+                log('writing','done')
             })
         )
     }
