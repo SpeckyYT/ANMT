@@ -159,8 +159,6 @@ const betaJS = (prom) => {
                 log('writing','done')
             })
             .then(async () => {
-                log('counting','start')
-
                 const outputFolder = path.join(videosFolder,'output');
                 createFolder(outputFolder);
                 const outputFile = path.join(outputFolder,`${fileData.name}.txt`);
@@ -168,13 +166,21 @@ const betaJS = (prom) => {
                 const file = fs.readFileSync(outputFile,{encoding:'utf-8'});
                 const lines = file.split(/\r?\n/g);
 
-                let objects = 0;
+                let triggers = 0;
 
+                const [ width, height, fps_f ] = lines[0].split(',').map(n => parseFloat(n));
                 for(let index = 1; index < lines.length; index++){
-                    objects += lines[index].split(':').filter(v => v).length
+                    triggers += lines[index].split(':').filter(v => v).length
                 }
-                log('counting',`${objects} color triggers`)
-                log('counting','done')
+
+                const pixels = width * height;
+                const fps = parseFloat(fps_f).toFixed(3);
+                const total = pixels + triggers;
+
+                log('counting',`${fps} frames per second`)
+                log('counting',`${width * height} pixels (${width}x${height})`)
+                log('counting',`${triggers} color triggers`)
+                log('counting',`${total} minimum total objects`)
             })
         )
     }
