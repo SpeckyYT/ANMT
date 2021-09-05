@@ -176,11 +176,14 @@ const betaJS = (prom) => {
                     triggers += lines[index].split(':').filter(v => v).length
                 }
 
+                const frames = lines.length - 2;
                 const pixels = width * height;
                 const fps = parseFloat(fps_f).toFixed(3);
                 const total = pixels + triggers;
 
+                log('counting',`${frames} frames`)
                 log('counting',`${fps} frames per second`)
+                log('counting',`${(frames / fps_f).toFixed(2)} seconds duration`)
                 log('counting',`${width * height} pixels (${width}x${height})`)
                 log('counting',`${triggers} color triggers`)
                 log('counting',`${total} minimum total objects`)
