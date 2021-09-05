@@ -74,7 +74,10 @@ const betaJS = (prom) => {
                             thisFramesFolder,
                             `${fileData.name}%${`${FILENAMENUMBERS}`.padStart(2,'0')}d.png`
                         )
-                    ]
+                    ],
+                    {
+                        stdio: ['inherit','inherit','inherit']
+                    }
                 )
                 .on('close', () => {
                     log('extracting','done');
