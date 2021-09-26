@@ -1,0 +1,5 @@
+ANMT = import '.'
+
+ANMT(
+    './videos/output/file.txt'
+)

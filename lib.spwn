@@ -5,91 +5,76 @@ canvas = import '../canvas/canvas.spwn'
 // https://github.com/SpeckyYT/SPWN-speed
 speed = import '../speed/speed.spwn'
 
-filename = 'changeyourfilenamehere'
-use_groups = false
-
-let file = regex("\\r").replace(
-    $.readfile('./videos/output/'+filename+'.txt'),
-    ''
-)
-let frames = file.split('\n')
-let data = frames.shift().split(',')
-
-let width = data[0] as @number
-let height = data[1] as @number
-let fps = data[2] as @number
-let scaling = 10/height
-
-let startdelay = 2
-let enddelay = 1
-
-let mySpeed = speed(1)
-
-let screen = ?g
-
-videoCanvas = canvas::new(
-    0, 0,
-    width, height,
-    $.floor(100*scaling)/100,
-    screen
-)
-
-for index in ..frames.length {
-    $.print(index,' frames done')
-    let frame = frames[index]
-    let toChange = []
-    for pixel in frame.split(':') {
-        pixelData = pixel.split(',')
-
-        if pixelData.length <= 4 {continue}
-
-        x = pixelData[0] as @number
-        y = pixelData[1] as @number
-        r = pixelData[2] as @number
-        g = pixelData[3] as @number
-        b = pixelData[4] as @number
-
-        toChange.push([
-            videoCanvas.colors[x][height-(y+1)],
-            r,g,b
-        ])
-    }
-    currentTime = index * 1/fps + startdelay
-    if use_groups {
-        call_with_delay(currentTime, !{
+ANMT = (
+    filename:@string,
+    x:@number = 0,
+    y:@number = 0,
+    scaling:@number = 1,
+    groups:[@group]|@group = [],
+    playerSpeed:@number = 1,
+    startdelay:@number = 0,
+    enddelay:@number = 0,
+    use_groups:@bool = false,
+    log:@bool = true,
+){
+    let file = regex("\\r").replace(
+        $.readfile(filename),
+        ''
+    )
+    let mySpeed = speed(playerSpeed)
+    let frames = file.split('\n')
+    let data = frames.shift().split(',')
+    let width = data[0] as @number
+    let height = data[1] as @number
+    let fps = data[2] as @number
+    videoCanvas = canvas::new(
+        x, y,
+        width, height,
+        $.floor(100*scaling)/100,
+        groups
+    )
+    for index in ..frames.length {
+        if log {
+            $.print('{} frames done ({}%)'.fmt([index,100*index/(frames.length-1)]))
+        }
+        let frame = frames[index]
+        let toChange = []
+        for pixel in frame.split(':') {
+            pixelData = pixel.split(',')
+            if pixelData.length <= 4 {continue}
+            [ x, y, r, g, b ] = pixelData.map(v => v as @number)
+            toChange.push([
+                videoCanvas.colors[x][height-(y+1)],
+                r,g,b
+            ])
+        }
+        currentTime = index * 1/fps + startdelay
+        if use_groups {
+            call_with_delay(currentTime, !{
+                for i in ..toChange.length {
+                    currentData = toChange[i]
+                    currentData[0].set(currentData[1],currentData[2],currentData[3])
+                }
+            })
+        } else {
             for i in ..toChange.length {
                 currentData = toChange[i]
-                currentData[0].set(currentData[1],currentData[2],currentData[3])
+                $.add(obj{
+                    OBJ_ID: 899,
+                    X:  currentTime * (30 * mySpeed),
+                    Y: 30*i+30*20,
+                    DURATION: 0,
+                    TARGET_COLOR: currentData[0],
+                    TRIGGER_RED: currentData[1],
+                    TRIGGER_GREEN: currentData[2],
+                    TRIGGER_BLUE: currentData[3],
+                })
             }
-        })
-    } else {
-        for i in ..toChange.length {
-            currentData = toChange[i]
-            $.add(obj{
-                OBJ_ID: 899,
-                X:  currentTime * (30 * mySpeed),
-                Y: 30*i+30*20,
-                DURATION: 0,
-                TARGET_COLOR: currentData[0],
-                TRIGGER_RED: currentData[1],
-                TRIGGER_GREEN: currentData[2],
-                TRIGGER_BLUE: currentData[3],
-            })
         }
+    }
+    return {
+        canvas: videoCanvas,
     }
 }
 
-$.add(obj{
-    OBJ_ID: 1,
-    X:  (frames.length * 1/fps + startdelay + enddelay) * (30 * mySpeed),
-    Y: -30,
-})
-
-hide_player()
-screen.lock_to_player(true,false)
-toggle_bg_effect(false)
--> screen.move(-45,0,1)
-
-for color in [BG,GROUND,LINE] {
-    color.set(0,0,0)
-}
+return ANMT
