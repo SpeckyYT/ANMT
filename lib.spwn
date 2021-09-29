@@ -30,8 +30,8 @@ ANMT = (
     videoCanvas = canvas::new(
         x, y,
         width, height,
-        $.floor(100*scaling)/100,
-        groups
+        scaling,
+        groups,
     )
     for index in ..frames.length {
         if log {
