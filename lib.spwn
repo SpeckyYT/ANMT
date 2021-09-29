@@ -19,10 +19,7 @@ ANMT = (
     use_groups:@bool = false,
     log:@bool = true,
 ){
-    let file = regex("\\r").replace(
-        $.readfile(filename),
-        ''
-    )
+    let file = regex("\\r").replace($.readfile(filename),'')
     let mySpeed = speed(playerSpeed)
     let frames = file.split('\n')
     let data = frames.shift().split(',')
