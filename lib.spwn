@@ -5,6 +5,8 @@ canvas = import '../canvas/canvas.spwn'
 // https://github.com/SpeckyYT/SPWN-speed
 speed = import '../speed/speed.spwn'
 
+numberizeArray = (array:@array) => array.map(v => v as @number)
+
 ANMT = (
     filename:@string,
     x:@number = 0,
@@ -24,9 +26,7 @@ ANMT = (
     let mySpeed = speed(playerSpeed)
     let frames = file.split('\n')
     let data = frames.shift().split(',')
-    let width = data[0] as @number
-    let height = data[1] as @number
-    let fps = data[2] as @number
+    let [width, height, fps ] = numberizeArray(data)
     videoCanvas = canvas::new(
         x, y,
         width, height,
@@ -42,7 +42,7 @@ ANMT = (
         for pixel in frame.split(':') {
             pixelData = pixel.split(',')
             if pixelData.length <= 4 {continue}
-            [ x, y, r, g, b ] = pixelData.map(v => v as @number)
+            [ x, y, r, g, b ] = numberizeArray(pixelData)
             toChange.push([
                 videoCanvas.colors[x][height-(y+1)],
                 r,g,b
