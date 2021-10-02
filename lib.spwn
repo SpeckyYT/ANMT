@@ -7,71 +7,112 @@ speed = import '../speed/speed.spwn'
 
 numberizeArray = (array:@array) => array.map(v => v as @number)
 
-ANMT = (
-    filename:@string,
-    x:@number = 0,
-    y:@number = 0,
-    scaling:@number = 1,
-    groups:[@group]|@group = [],
-    playerSpeed:@number = 1,
-    startdelay:@number = 0,
-    enddelay:@number = 0,
-    use_groups:@bool = false,
-    log:@bool = true,
-){
-    let file = regex("\\r").replace($.readfile(filename),'')
-    let mySpeed = speed(playerSpeed)
-    let frames = file.split('\n')
-    let data = frames.shift().split(',')
-    let [width, height, fps ] = numberizeArray(data)
-    videoCanvas = canvas::new(
-        x, y,
-        width, height,
-        scaling,
-        groups,
-    )
-    for index in ..frames.length {
-        if log {
-            $.print('{} frames done ({}%)'.fmt([index,100*index/(frames.length-1)]))
-        }
-        let frame = frames[index]
-        let toChange = []
-        for pixel in frame.split(':') {
-            pixelData = pixel.split(',')
-            if pixelData.length <= 4 {continue}
-            [ x, y, r, g, b ] = numberizeArray(pixelData)
-            toChange.push([
-                videoCanvas.colors[x][height-(y+1)],
-                r,g,b
-            ])
-        }
-        currentTime = index * 1/fps + startdelay
-        if use_groups {
-            call_with_delay(currentTime, !{
-                for i in ..toChange.length {
-                    [ c, r, g, b ] = toChange[i]
-                    c.set(r,g,b)
-                }
-            })
-        } else {
-            for i in ..toChange.length {
-                [ c, r, g, b ] = toChange[i]
-                $.add(obj{
-                    OBJ_ID: 899,
-                    X:  currentTime * (30 * mySpeed),
-                    Y: 30*i+30*20,
-                    DURATION: 0,
-                    TARGET_COLOR: c,
-                    TRIGGER_RED: r,
-                    TRIGGER_GREEN: g,
-                    TRIGGER_BLUE: b,
+type @ANMT
+impl @ANMT {
+    new: (
+        filename:@string,
+        x:@number = 0,
+        y:@number = 0,
+        scaling:@number = 1,
+        groups:[@group]|@group = [],
+        player_speed:@number = 1,
+        lookup:@counter = counter(?i),
+        status:@counter = counter(?i),
+        use_lookup:@bool = false,
+        log:@bool = true,
+    ){
+        let file = regex("\\r").replace($.readfile(filename),'')
+        let my_speed = speed(player_speed)
+        let frames = file.split('\n')
+        let data = frames.shift().split(',')
+        let [ width, height, fps ] = numberizeArray(data)
+        video_canvas = canvas::new(
+            x, y,
+            width, height,
+            scaling,
+            groups,
+        )
+        for index in ..frames.length {
+            if log {
+                $.print('{} frames done ({}%)'.fmt([index,100*index/(frames.length-1)]))
+            }
+            let frame = frames[index]
+            let to_change = []
+            for pixel in frame.split(':') {
+                pixel_data = pixel.split(',')
+                if pixel_data.length <= 4 {continue}
+                [ x, y, r, g, b ] = numberizeArray(pixel_data)
+                to_change.push([
+                    video_canvas.colors[x][height-(y+1)],
+                    r,g,b
+                ])
+            }
+            current_time = index * 1/fps
+            if use_lookup {
+                on(lookup.reaches(index+1), !{
+                    for i in ..to_change.length {
+                        [ c, r, g, b ] = to_change[i]
+                        c.set(r,g,b)
+                    }
                 })
+            } else {
+                for i in ..to_change.length {
+                    [ c, r, g, b ] = to_change[i]
+                    $.add(obj{
+                        OBJ_ID: 899,
+                        X:  current_time * (30 * my_speed),
+                        Y: 30*i+30*20,
+                        DURATION: 0,
+                        TARGET_COLOR: c,
+                        TRIGGER_RED: r,
+                        TRIGGER_GREEN: g,
+                        TRIGGER_BLUE: b,
+                    })
+                }
             }
         }
-    }
-    return {
-        canvas: videoCanvas,
-    }
+        lookup = 0
+        status = 0
+        while_loop(() => true, (){
+            wait(1/fps)
+            if status == 1 {
+                if lookup < frames.length {lookup+=1}
+            }
+            if status == 2 {
+                if lookup > 0 {lookup-=1}
+            }
+        })
+        return @ANMT::{
+            canvas: video_canvas,
+            width: width,
+            height: height,
+            fps: fps,
+            lookup: lookup,
+            status: status,
+        }
+    },
+    /*
+    STATUS:
+        0 = paused
+        1 = playing
+        2 = reverse
+    */
+    play: (self){
+        self.status = 1
+    },
+    restart: (self){
+        self.lookup = 0
+        self.status = 1
+    },
+    reverse: (self){
+        self.status = 2
+    },
+    pause: (self){
+        self.status = 0
+    },
+    seek: (self, frame:@number = 0){
+        self.lookup = frame
+    },
 }
 
-return ANMT
+return @ANMT
