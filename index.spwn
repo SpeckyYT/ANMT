@@ -1,5 +1,10 @@
-ANMT = import '.'
+import '.'
 
-ANMT(
-    './videos/output/file.txt'
+my_video = @ANMT::new(
+    './videos/output/file.txt',
+    use_lookup = true,
 )
+
+call_with_delay(1.5, !{
+    my_video.play()
+})
