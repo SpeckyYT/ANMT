@@ -11,12 +11,14 @@ const CROP_X = 0;   // all 0 for disable
 const CROP_Y = 0;
 const CROP_WIDTH = 0;
 const CROP_HEIGHT = 0;
-const OPTIMISE_FIRST_FRAME = false;
 
 const MAX_PIXELS = 999;     // 999 is the max amount of usable colors in 2.1
 const FILENAMENUMBERS = 5;  // e.g. filename00001.png
 const SKIP_EXTRACTING = false;
 const SKIP_PROCESSING = false;
+
+const OPTIMIZE_PREVIOUS_FRAME = true;   // uses less color triggers when playing normally
+const OPTIMIZE_NEXT_FRAME = true;       // uses less color triggers when playing in reverse
 
 const createFolder = (folder) => {
     if(!fs.existsSync(folder)) return fs.mkdirSync(folder);
@@ -115,14 +117,14 @@ const betaJS = (prom) => {
                         pool.run(
                             {
                                 currentPath: frames[frame],
-                                previousPath: frames[frame-1],
-                                nextPath: frames[frame+1],
+                                previousPath: OPTIMIZE_PREVIOUS_FRAME && frames[frame-1],
+                                nextPath: OPTIMIZE_NEXT_FRAME && frames[frame+1],
                                 width: global.width,
                                 height: global.height,
                                 CROP_X,
                                 CROP_Y,
-                                CROP_HEIGHT,
-                                CROP_WIDTH,
+                                CROP_HEIGHT: CROP_HEIGHT || firstFrame.getHeight(),
+                                CROP_WIDTH: CROP_WIDTH || firstFrame.getWidth(),
                                 COLOR_PRECISION: colorPrecision,
                             }
                         )
