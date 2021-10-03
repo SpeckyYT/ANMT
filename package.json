@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "main": "index.js",
   "dependencies": {
+    "deep-equal": "^2.0.5",
     "filehound": "^1.17.4",
     "get-pixels": "^3.3.3",
     "jimp": "^0.16.1",
