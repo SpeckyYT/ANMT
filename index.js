@@ -123,11 +123,15 @@ const betaJS = (prom) => {
                                 nextPath: OPTIMIZE_NEXT_FRAME && frames[frame+1],
                                 width: global.width,
                                 height: global.height,
+                                index: frame,
+                                length: frames.length,
                                 CROP_X,
                                 CROP_Y,
                                 CROP_HEIGHT: CROP_HEIGHT || firstFrame.getHeight(),
                                 CROP_WIDTH: CROP_WIDTH || firstFrame.getWidth(),
                                 COLOR_PRECISION: colorPrecision,
+                                OPTIMIZE_PREVIOUS_FRAME,
+                                OPTIMIZE_NEXT_FRAME,
                             }
                         )
                         .then(data => {

@@ -25,11 +25,15 @@ module.exports = async ({
     nextPath,
     width,
     height,
+    index,
+    length,
     CROP_X,
     CROP_Y,
     CROP_WIDTH,
     CROP_HEIGHT,
     COLOR_PRECISION,
+    OPTIMIZE_PREVIOUS_FRAME,
+    OPTIMIZE_NEXT_FRAME,
 }) => {
     const readImage = async path =>
         path && (await read(path)).crop(CROP_X, CROP_Y,CROP_WIDTH, CROP_HEIGHT).resize(width,height)
@@ -43,16 +47,23 @@ module.exports = async ({
     for(let x = 0; x < width; x++){
         for(let y = 0; y < height; y++){
             function getColor(image){
-                return flattenColor(jimp.intToRGBA(image.getPixelColor(x,y)),COLOR_PRECISION);
+                return flattenColor(
+                    jimp.intToRGBA(
+                        image ?
+                            image.getPixelColor(x,y) : 0
+                    ), COLOR_PRECISION
+                );
             }
             function send(){
                 return output.push([x,y,Object.values(getColor(currImage))].join(','));
             }
-            if(prevImage && nextImage){
-                if(!equal(getColor(currImage),getColor(prevImage),getColor(nextImage))) send();
-            } else if(prevImage || nextImage){
-                if(!equal(getColor(currImage),getColor(prevImage||nextImage))) send();
-            } else send();
+            if(OPTIMIZE_PREVIOUS_FRAME && index > 0 && !equal(getColor(currImage),getColor(prevImage))){
+                send();
+            }else if(OPTIMIZE_NEXT_FRAME && index < length-1 && !equal(getColor(currImage),getColor(nextImage))){
+                send();
+            }else if(OPTIMIZE_PREVIOUS_FRAME && index == 0 || OPTIMIZE_NEXT_FRAME && index == length-1){
+                send();
+            }
         }
     }
 
