@@ -71,15 +71,23 @@ impl @ANMT {
                 }
             }
         }
-        lookup = 0
-        status = 0
         while_loop(() => true, (){
-            wait(1/fps)
-            if status == 1 {
-                if lookup < frames.length {lookup+=1}
+            delay = !{
+                wait(1/fps)
             }
-            if status == 2 {
-                if lookup > 0 {lookup-=1}
+            switch status {
+                case 1: (){
+                    if lookup < frames.length {
+                        lookup++
+                        delay!
+                    }
+                }(),
+                case 2: (){
+                    if lookup > 0 {
+                        lookup--
+                        delay!
+                    }
+                }(),
             }
         })
         return @ANMT::{
@@ -101,7 +109,7 @@ impl @ANMT {
         self.status = 1
     },
     restart: (self){
-        self.lookup = 0
+        self.seek(0)
         self.status = 1
     },
     reverse: (self){
