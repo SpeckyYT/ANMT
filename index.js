@@ -17,8 +17,10 @@ const FILENAMENUMBERS = 5;  // e.g. filename00001.png
 const SKIP_EXTRACTING = false;
 const SKIP_PROCESSING = false;
 
+// setting the values to true will slow down the preprocessing
+// setting both to true will result into more used triggers than with only one setting being true
 const OPTIMIZE_PREVIOUS_FRAME = true;   // uses less color triggers when playing normally
-const OPTIMIZE_NEXT_FRAME = true;       // uses less color triggers when playing in reverse
+const OPTIMIZE_NEXT_FRAME = false;      // uses less color triggers when playing in reverse
 
 const createFolder = (folder) => {
     if(!fs.existsSync(folder)) return fs.mkdirSync(folder);
