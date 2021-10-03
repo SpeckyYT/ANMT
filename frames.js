@@ -20,8 +20,9 @@ function areEqual(obj1,obj2){
 }
 
 module.exports = async ({
-    path,
+    currentPath,
     previousPath,
+    nextPath,
     width,
     height,
     CROP_X,
@@ -29,7 +30,6 @@ module.exports = async ({
     CROP_WIDTH,
     CROP_HEIGHT,
     COLOR_PRECISION,
-    OPTIMISE_FIRST_FRAME,
 }) => {
     const image = await read(path);
     const resized = image.crop(

@@ -114,8 +114,9 @@ const betaJS = (prom) => {
                     promises.push(
                         pool.run(
                             {
-                                path: frames[frame],
+                                currentPath: frames[frame],
                                 previousPath: frames[frame-1],
+                                nextPath: frames[frame+1],
                                 width: global.width,
                                 height: global.height,
                                 CROP_X,
@@ -123,7 +124,6 @@ const betaJS = (prom) => {
                                 CROP_HEIGHT,
                                 CROP_WIDTH,
                                 COLOR_PRECISION: colorPrecision,
-                                OPTIMISE_FIRST_FRAME,
                             }
                         )
                         .then(data => {
