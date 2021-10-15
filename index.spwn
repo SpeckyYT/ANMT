@@ -5,6 +5,9 @@ my_video = @ANMT::new(
     use_lookup = true,
 )
 
+my_video.lookup.display(150,-15)
+my_video.status.display(150,-45)
+
 call_with_delay(1.5, !{
     my_video.play()
 })
