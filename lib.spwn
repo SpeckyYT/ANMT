@@ -7,6 +7,11 @@ speed = import '../speed/speed.spwn'
 
 numberizeArray = (array:@array) => array.map(v => v as @number)
 
+ceil_dec = (number:@number,precision:@number){
+    base = 1 / precision
+    return $.ceil(number * base) / base
+}
+
 type @ANMT
 impl @ANMT {
     new: (
@@ -16,8 +21,6 @@ impl @ANMT {
         scaling:@number = 1,
         groups:[@group]|@group = [],
         player_speed:@number = 1,
-        lookup:@counter = counter(?i),
-        status:@counter = counter(?i),
         use_lookup:@bool = false,
         log:@bool = true,
     ){
@@ -26,6 +29,8 @@ impl @ANMT {
         let frames = file.split('\n')
         let data = frames.shift().split(',')
         let [ width, height, fps ] = numberizeArray(data)
+        lookup = counter(?i, bits = $.ceil($.log(frames.length,2)))
+        status = counter(?i, bits = 2) // 2 bits are enough atm
         video_canvas = canvas::new(
             x, y,
             width, height,
@@ -72,24 +77,20 @@ impl @ANMT {
             }
         }
         while_loop(() => true, (){
-            delay = !{
-                wait(1/fps)
-            }
             switch status {
+                case 0: null,
                 case 1: (){
                     if lookup < frames.length {
                         lookup++
-                        delay!
                     }
                 }(),
                 case 2: (){
                     if lookup > 0 {
                         lookup--
-                        delay!
                     }
                 }(),
             }
-        })
+        }, delay = ceil_dec(1/fps,0.01))
         return @ANMT::{
             canvas: video_canvas,
             width: width,
