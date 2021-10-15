@@ -5,7 +5,7 @@ canvas = import '../canvas/canvas.spwn'
 // https://github.com/SpeckyYT/SPWN-speed
 speed = import '../speed/speed.spwn'
 
-numberizeArray = (array:@array) => array.map(v => v as @number)
+numberize_array = (array:@array) => array.map(v => v as @number)
 
 ceil_dec = (number:@number,precision:@number){
     base = 1 / precision
@@ -28,7 +28,7 @@ impl @ANMT {
         let my_speed = speed(player_speed)
         let frames = file.split('\n')
         let data = frames.shift().split(',')
-        let [ width, height, fps ] = numberizeArray(data)
+        let [ width, height, fps ] = numberize_array(data)
         lookup = counter(?i, bits = $.ceil($.log(frames.length,2)))
         status = counter(?i, bits = 2) // 2 bits are enough atm
         video_canvas = canvas::new(
@@ -46,7 +46,7 @@ impl @ANMT {
             for pixel in frame.split(':') {
                 pixel_data = pixel.split(',')
                 if pixel_data.length <= 4 {continue}
-                [ x, y, r, g, b ] = numberizeArray(pixel_data)
+                [ x, y, r, g, b ] = numberize_array(pixel_data)
                 to_change.push([
                     video_canvas.colors[x][height-(y+1)],
                     r,g,b
