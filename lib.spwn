@@ -1,7 +1,7 @@
 extract obj_props
 
 // https://github.com/SpeckyYT/SPWN-canvas
-canvas = import '../canvas/canvas.spwn'
+import '../canvas/canvas.spwn'
 // https://github.com/SpeckyYT/SPWN-speed
 speed = import '../speed/speed.spwn'
 
@@ -22,6 +22,7 @@ impl @ANMT {
         groups:[@group]|@group = [],
         player_speed:@number = 1,
         use_lookup:@bool = false,
+        use_groups:@bool = false,
         log:@bool = true,
     ){
         let file = regex("\\r").replace($.readfile(filename),'')
@@ -31,11 +32,12 @@ impl @ANMT {
         let [ width, height, fps ] = numberize_array(data)
         lookup = counter(?i, bits = $.ceil($.log(frames.length,2)))
         status = counter(?i, bits = 2) // 2 bits are enough atm
-        video_canvas = canvas::new(
+        video_canvas = @canvas::new(
             x, y,
             width, height,
             scaling,
             groups,
+            use_groups = use_groups,
         )
         for index in ..frames.length {
             if log {
@@ -56,23 +58,37 @@ impl @ANMT {
             if use_lookup {
                 on(lookup.reaches(index+1), !{
                     for i in ..to_change.length {
-                        [ c, r, g, b ] = to_change[i]
-                        c.set(r,g,b)
+                        [ target, r, g, b ] = to_change[i]
+                        -> switch target {
+                            @color: target.set(r,g,b),
+                            @group: target.pulse(r, g, b, hold = 9999),
+                        }
                     }
                 })
             } else {
                 for i in ..to_change.length {
-                    [ c, r, g, b ] = to_change[i]
-                    $.add(obj{
-                        OBJ_ID: 899,
+                    [ target, r, g, b ] = to_change[i]
+                    let trig = obj{
                         X:  current_time * (30 * my_speed),
                         Y: 30*i+30*20,
                         DURATION: 0,
-                        TARGET_COLOR: c,
                         TRIGGER_RED: r,
                         TRIGGER_GREEN: g,
                         TRIGGER_BLUE: b,
-                    })
+                    }
+                    switch target {
+                        @color: (){
+                            trig.set(OBJ_ID, 899)
+                            trig.set(TARGET_COLOR, target)
+                        }(),
+                        @group: (){
+                            trig.set(OBJ_ID, 1006)
+                            trig.set(TARGET, target)
+                            trig.set(TARGET_TYPE, 1)
+                            trig.set(HOLD, 9999)
+                        }(),
+                    }
+                    $.add(trig)
                 }
             }
         }
