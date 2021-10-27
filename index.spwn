@@ -2,7 +2,11 @@ import '.'
 
 my_video = @ANMT::new(
     './videos/output/file.txt',
+    x = 240,
+    y = 120,
+    scaling = 0.4,
     use_lookup = true,
+    use_groups = false, // uses groups instead of color channels for canvas
 )
 
 my_video.lookup.display(150,-15)
