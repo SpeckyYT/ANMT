@@ -39,8 +39,8 @@ If you only want to update the output file or only extract the frames, change `S
 ## Compile into Geometry Dash
 
 Check out `videos/output/`, and look for the file you generated.
-Edit the variable `filename` in `index.spwn` to the name of the desired file in `videos/output/` (without `.txt`).
-Now you can run `spwn build index.spwn`, and slowly but surely it will build your video to your latest Geometry Dash level.
+Edit the parameter `filename` in `index.spwn` to the path of the file you want to compile.
+Now you can run `spwn build index.spwn --allow readfile`, and slowly but surely it will build your video to your latest Geometry Dash level.
 
 ## FAQ
 

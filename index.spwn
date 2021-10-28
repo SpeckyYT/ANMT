@@ -1,7 +1,7 @@
 import '.'
 
 my_video = @ANMT::new(
-    './videos/output/file.txt',
+    filename = './videos/output/file.txt',
     x = 240,
     y = 120,
     scaling = 0.4,
