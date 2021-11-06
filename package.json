@@ -5,6 +5,7 @@
   "dependencies": {
     "deep-equal": "^2.0.5",
     "filehound": "^1.17.4",
+    "jimp": "^0.16.1",
     "js-ffmpeg": "0.0.29",
     "piscina": "^3.1.0",
     "sharp": "^0.29.2"
