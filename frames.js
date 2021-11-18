@@ -49,7 +49,8 @@ module.exports = async ({
             width: CROP_WIDTH,
             height: CROP_HEIGHT,
         })
-        .resize(width,height)
+        .resize(width, height, { kernel: 'cubic' })
+        .ensureAlpha()
     }
 
     const [
@@ -68,7 +69,7 @@ module.exports = async ({
 
     for(let x = 0; x < width; x++){
         for(let y = 0; y < height; y++){
-            const offset = x * 3 + y * width * 3
+            const offset = x * 4 + y * width * 4
 
             const currColor = flattenColor(getColor(currImage,offset),COLOR_PRECISION)
             const prevColor = flattenColor(getColor(prevImage,offset),COLOR_PRECISION)
