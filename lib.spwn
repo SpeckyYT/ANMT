@@ -20,9 +20,10 @@ impl @ANMT {
         y:@number = 0,
         scaling:@number = 1,
         groups:[@group]|@group = [],
-        player_speed:@number = 1,
+        repeatable:@bool = false,
         use_lookup:@bool = false,
         use_groups:@bool = false,
+        player_speed:@number = 1,
         log:@bool = true,
     ){
         let file = regex("\\r").replace($.readfile(filename),'')
@@ -30,8 +31,10 @@ impl @ANMT {
         let frames = file.split('\n')
         let data = frames.shift().split(',')
         let [ width, height, fps ] = numberize_array(data)
+
         lookup = counter(?i, bits = $.ceil($.log(frames.length,2)))
         status = counter(?i, bits = 2) // 2 bits are enough atm
+
         video_canvas = @canvas::new(
             x, y,
             width, height,
@@ -39,6 +42,7 @@ impl @ANMT {
             groups,
             use_groups = use_groups,
         )
+
         for index in ..frames.length {
             if log {
                 $.print('{} frames done ({}%)'.fmt([index,100*index/(frames.length-1)]))
@@ -68,7 +72,7 @@ impl @ANMT {
             } else {
                 for i in ..to_change.length {
                     [ target, r, g, b ] = to_change[i]
-                    let trig = obj{
+                    let trig = obj {
                         X:  current_time * (30 * my_speed),
                         Y: 30*i+30*20,
                         DURATION: 0,
@@ -92,6 +96,7 @@ impl @ANMT {
                 }
             }
         }
+
         while_loop(() => true, (){
             switch status {
                 case 0: null,
@@ -107,6 +112,16 @@ impl @ANMT {
                 }(),
             }
         }, delay = ceil_dec(1/fps,0.01))
+
+        if repeatable {
+            on(lookup.reaches(-1), !{
+                lookup += frames.length
+            })
+            on(lookup.reaches(frames.length), !{
+                lookup -= frames.length
+            })
+        }
+
         return @ANMT::{
             canvas: video_canvas,
             width: width,

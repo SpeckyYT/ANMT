@@ -5,6 +5,7 @@ my_video = @ANMT::new(
     x = 240,
     y = 120,
     scaling = 0.4,
+    repeatable = false,
     use_lookup = true,
     use_groups = false, // uses groups instead of color channels for canvas
 )
