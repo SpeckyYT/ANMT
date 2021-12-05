@@ -154,5 +154,3 @@ impl @ANMT {
         self.lookup = frame
     },
 }
-
-return @ANMT
