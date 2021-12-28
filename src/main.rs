@@ -1,20 +1,9 @@
-use std::{
-    ffi::{
-        OsStr,
-    },
-    fs,
-    iter::{
-        Iterator,
-    },
-    path::{
-        Path, PathBuf,
-    },
-    process::{
-        Command,
-        Output,
-    },
-    thread,
-};
+use std::ffi::OsStr;
+use std::fs;
+use std::iter::Iterator;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+use std::thread;
 // use image::*;
 
 const SUPPORTED_VIDEO_FORMATS: [&str; 9] = [
