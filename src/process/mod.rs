@@ -1,19 +1,12 @@
 use std::path::{PathBuf};
-use std::thread;
-// use image::*;
+// use std::thread;
 
-// copy paste moment (a macro could help?)
+extern crate image;
+// use image::{GenericImage, GenericImageView, ImageBuffer, RgbImage};
+
 pub fn manage_process_frames(frames_folder: &PathBuf, video_files: &Vec<PathBuf>){
-    let mut threads = vec![];
     for video_file in video_files {
-        let frames_folder_clone = frames_folder.clone();
-        let video_file_clone = video_file.clone();
-        threads.push(thread::spawn(move || {
-            process_frames(&frames_folder_clone, &video_file_clone);
-        }));
-    }
-    for current_thread in threads {
-        current_thread.join().expect("`manage_process_frames` thread didn't end successfully.");
+        process_frames(&frames_folder, &video_file);
     }
 }
 
