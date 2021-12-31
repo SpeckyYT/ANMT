@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 image = "0.23.14"
+fast_image_resize = "0.5.3"
