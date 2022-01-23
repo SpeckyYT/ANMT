@@ -15,7 +15,7 @@ fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) {
 
     let frames: Vec<_> = current_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
 
-    let first_frame = image::open(frames[0].unwrap().path()).unwrap();
+    let first_frame = image::open(frames[0].as_ref().unwrap().path()).unwrap();
 
     let (o_width, o_height) = first_frame.dimensions();
     let o_pixels: f64 = (o_width as f64) * (o_height as f64);
@@ -27,10 +27,9 @@ fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) {
     let height: u32 = ((o_height as f64) / scale) as u32;
 
     for frame_index in 0..frames.len() {
-        let current_frame = &frames[frame_index];
-        let frame_entry = current_frame.as_ref().unwrap();
+        let frame_entry = &frames.as_ref()[frame_index].unwrap().path();
         thread::spawn(move || {
-            let frame_path = frame_entry.path();
+            let frame_path = frame_entry;
             
             let frame = image::open(frame_path).expect("Failed to read frame");
 
