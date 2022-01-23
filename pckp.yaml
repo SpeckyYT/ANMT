@@ -1,0 +1,8 @@
+%YAML 1.2
+---
+
+name: anmt
+version: 0.0.0
+folders:
+  - lib
+  - src
