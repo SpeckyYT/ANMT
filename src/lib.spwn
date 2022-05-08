@@ -1,9 +1,7 @@
 extract obj_props
 
-// https://github.com/SpeckyYT/SPWN-canvas
-import '../canvas/canvas.spwn'
-// https://github.com/SpeckyYT/SPWN-speed
-speed = import '../speed/speed.spwn'
+import '../pckp_libraries/canvas'
+speed = import '../pckp_libraries/speed'
 
 numberize_array = (array:@array) => array.map(v => v as @number)
 
@@ -43,7 +41,7 @@ impl @ANMT {
             use_groups = use_groups,
         )
 
-        for index in ..frames.length {
+        for index in 0..frames.length {
             if log {
                 $.print('{} frames done ({}%)'.fmt([index,100*index/(frames.length-1)]))
             }
@@ -61,16 +59,16 @@ impl @ANMT {
             current_time = index * 1/fps
             if use_lookup {
                 on(lookup.reaches(index+1), !{
-                    for i in ..to_change.length {
+                    for i in 0..to_change.length {
                         [ target, r, g, b ] = to_change[i]
-                        -> switch target {
+                        -> match target {
                             @color: target.set(r,g,b),
                             @group: target.pulse(r, g, b, hold = 9999),
                         }
                     }
                 })
             } else {
-                for i in ..to_change.length {
+                for i in 0..to_change.length {
                     [ target, r, g, b ] = to_change[i]
                     let trig = obj {
                         X:  current_time * (30 * my_speed),
@@ -80,7 +78,7 @@ impl @ANMT {
                         TRIGGER_GREEN: g,
                         TRIGGER_BLUE: b,
                     }
-                    switch target {
+                    match target {
                         @color: (){
                             trig.set(OBJ_ID, 899)
                             trig.set(TARGET_COLOR, target)
@@ -98,14 +96,14 @@ impl @ANMT {
         }
 
         while_loop(() => true, (){
-            switch status {
-                case 0: null,
-                case 1: (){
+            match status {
+                ==0: null,
+                ==1: (){
                     if lookup < frames.length {
                         lookup++
                     }
                 }(),
-                case 2: (){
+                ==2: (){
                     if lookup > 0 {
                         lookup--
                     }
