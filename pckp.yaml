@@ -2,7 +2,10 @@
 ---
 
 name: anmt
-version: 0.0.0
+version: 0.0.1
 folders:
-  - lib
   - src
+
+dependencies:
+  - url: https://github.com/SpeckyYT/SPWN-canvas
+  - url: https://github.com/SpeckyYT/SPWN-speed
