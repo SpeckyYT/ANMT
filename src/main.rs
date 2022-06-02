@@ -2,6 +2,7 @@ use std::path::{Path};
 
 mod extract;
 mod process;
+mod output;
 mod util;
 
 const SUPPORTED_VIDEO_FORMATS: [&str; 9] = [
@@ -28,5 +29,6 @@ fn main() {
     let video_files = util::find_files(&video_folder, &SUPPORTED_VIDEO_FORMATS);
 
     extract::manage_extract_frames(&frames_folder, &video_files);
-    process::manage_process_frames(&frames_folder, &video_files);
+    let videos = process::manage_process_frames(&frames_folder, &video_files);
+    output::manage_output_frames(&output_folder, videos);
 }

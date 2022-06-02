@@ -1,4 +1,4 @@
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Child};
 
 pub fn manage_extract_frames(frames_folder: &PathBuf, video_files: &Vec<PathBuf>){
@@ -7,7 +7,7 @@ pub fn manage_extract_frames(frames_folder: &PathBuf, video_files: &Vec<PathBuf>
         children.push(extract_frames(&frames_folder, &video_file));
     }
     for child in children {
-        child.wait_with_output().expect("Error while running FFMPEG");
+        child.wait_with_output().map_err(|err| format!("Error while running FFMPEG: {}", err)).unwrap();
     }
 }
 
