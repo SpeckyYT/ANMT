@@ -1,17 +1,7 @@
 use std::path::PathBuf;
 use std::process::{Command, Child};
 
-pub fn manage_extract_frames(frames_folder: &PathBuf, video_files: &Vec<PathBuf>){
-    let mut children = vec![];
-    for video_file in video_files {
-        children.push(extract_frames(&frames_folder, &video_file));
-    }
-    for child in children {
-        child.wait_with_output().map_err(|err| format!("Error while running FFMPEG: {}", err)).unwrap();
-    }
-}
-
-fn extract_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Child {
+pub fn extract_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Child {
     let file_name = file_path.file_stem().unwrap().to_str().unwrap();
     let current_folder = frames_folder.join(file_name);
 

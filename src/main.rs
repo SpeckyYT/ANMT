@@ -28,7 +28,21 @@ fn main() {
 
     let video_files = util::find_files(&video_folder, &SUPPORTED_VIDEO_FORMATS);
 
-    extract::manage_extract_frames(&frames_folder, &video_files);
-    let videos = process::manage_process_frames(&frames_folder, &video_files);
-    output::manage_output_frames(&output_folder, videos);
+    for video_file in video_files {
+        let file_name = video_file.file_name().unwrap().to_str().unwrap();
+        // remove characters that are not allowed in filenames (all in one line)
+        let file_name = match file_name.replace(|c: char| !c.is_ascii_alphanumeric(), "") {
+            a if a == String::from("") => String::from("video"),
+            a => a,
+        };
+
+        extract::extract_frames(&frames_folder, &video_file)
+            .wait_with_output()
+            .map_err(|err| format!("Error while running FFMPEG: {}", err))
+            .unwrap();
+
+        let frames = process::process_frames(&frames_folder, &video_file);
+
+        output::output_frames(&output_folder, frames, file_name);
+    }
 }

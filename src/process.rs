@@ -6,15 +6,7 @@ use image::*;
 
 const COLOR_PRECISION: u8 = 4;
 
-pub fn manage_process_frames(frames_folder: &PathBuf, video_files: &Vec<PathBuf>) -> Vec<Vec<HashMap<(usize,usize), [u8; 4]>>> {
-    let mut videos = Vec::new();
-    for video_file in video_files {
-        videos.push(process_frames(&frames_folder, &video_file));
-    }
-    videos
-}
-
-fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Vec<HashMap<(usize,usize), [u8; 4]>> {
+pub fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Vec<HashMap<(usize,usize), [u8; 4]>> {
     let file_name = file_path.file_stem().unwrap().to_str().unwrap();
     let current_folder = frames_folder.join(file_name);
 
