@@ -18,7 +18,6 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 name = "anmt"
 version = "0.0.1"
 dependencies = [
- "fast_image_resize",
  "image",
 ]
 
@@ -153,16 +152,6 @@ dependencies = [
  "lebe",
  "smallvec",
  "threadpool",
-]
-
-[[package]]
-name = "fast_image_resize"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccf174e621dc44fc6118d0e3289a1286c166ac28599e15651a82da23a14a3425"
-dependencies = [
- "num-traits",
- "thiserror",
 ]
 
 [[package]]
@@ -510,26 +499,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "thiserror"
-version = "1.0.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd829fe32373d27f76265620b5309d0340cb8550f523c1dda251d6298069069a"
-dependencies = [
- "thiserror-impl",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "1.0.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0396bc89e626244658bef819e22d0cc459e795a5ebe878e6ec336d1674a8d79a"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
