@@ -8,9 +8,8 @@ use image::*;
 const COLOR_PRECISION: u8 = 4;
 
 impl Video {
-    pub fn process_frames(&mut self, frames_folder: &PathBuf, file_path: &PathBuf) {
-        let file_name = file_path.file_stem().unwrap().to_str().unwrap();
-        let current_folder = frames_folder.join(file_name);
+    pub fn process_frames(&mut self, frames_folder: &PathBuf) {
+        let current_folder = frames_folder.join(self.file_name(""));
     
         let frames: Vec<_> = current_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
         let frames: Vec<_> = frames.iter().map(|f|

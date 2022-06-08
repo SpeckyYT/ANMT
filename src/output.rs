@@ -23,8 +23,4 @@ impl Video {
         let mut file = std::fs::File::create(output_folder.join(self.file_name("txt"))).unwrap();
         file.write_all(content.as_bytes()).expect("Failed to write to file");
     }
-    fn file_name(&self, extension: &str) -> String {
-        let file_name = self.path.file_stem().unwrap().to_str().unwrap();
-        format!("{}.{}", file_name, extension)
-    }
 }

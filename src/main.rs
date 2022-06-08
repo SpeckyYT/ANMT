@@ -23,6 +23,14 @@ impl Video {
             total,
             100 * current / total,
         );
+    }
+    pub fn file_name(&self, extension: &str) -> String {
+        let file_name = self.path.file_stem().unwrap().to_str().unwrap();
+        if extension.len() > 0 {
+            format!("{}.{}", file_name, extension)
+        } else {
+            file_name.to_string()
+        }
     }    
 }
 
@@ -57,12 +65,12 @@ fn main() {
             height: 0,
         };
 
-        extract::extract_frames(&frames_folder, &video_file)
+        video.extract_frames(&frames_folder)
             .wait_with_output()
             .map_err(|err| format!("Error while running FFMPEG: {}", err))
             .unwrap();
 
-        video.process_frames(&frames_folder, &video_file);
+        video.process_frames(&frames_folder);
         video.output_frames(&output_folder);
     }
 }
