@@ -1,23 +1,30 @@
 use std::io::Write;
 use std::path::PathBuf;
-use super::process::Video;
+use super::Video;
 
-pub fn output_frames(output_folder: &PathBuf, video: Video, file_name: String) {
-    let mut content = String::new();
+impl Video {
+    pub fn output_frames(&self, output_folder: &PathBuf) {
+        let mut content = String::new();
 
-    // I'm not so desperate anymore 😎
-    content.push_str(format!("{},{},30\n", video.width, video.height).as_str());
+        // I'm not so desperate anymore 😎
+        content.push_str(format!("{},{},30\n", self.width, self.height).as_str());
 
-    for frame in video.frames {
-        let mut current_frame = Vec::new();
-        for (key, val) in frame.iter() {
-            let form = format!("{},{},{},{},{}", key.0, key.1, val[0], val[1], val[2]);
-            current_frame.push(form);
+        for frame in &self.frames {
+            let mut current_frame = Vec::new();
+            for (key, val) in frame.iter() {
+                let form = format!("{},{},{},{},{}", key.0, key.1, val[0], val[1], val[2]);
+                current_frame.push(form);
+            }
+            content.push_str(&current_frame.join(":"));
+            content.push_str("\n");
         }
-        content.push_str(&current_frame.join(":"));
-        content.push_str("\n");
-    }
 
-    let mut file = std::fs::File::create(output_folder.join(file_name)).unwrap();
-    file.write_all(content.as_bytes()).expect("Failed to write to file");
+        
+        let mut file = std::fs::File::create(output_folder.join(self.file_name("txt"))).unwrap();
+        file.write_all(content.as_bytes()).expect("Failed to write to file");
+    }
+    fn file_name(&self, extension: &str) -> String {
+        let file_name = self.path.file_stem().unwrap().to_str().unwrap();
+        format!("{}.{}", file_name, extension)
+    }
 }
