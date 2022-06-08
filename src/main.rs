@@ -1,4 +1,4 @@
-use std::path::{Path};
+use std::path::Path;
 
 mod extract;
 mod process;
@@ -41,8 +41,8 @@ fn main() {
             .map_err(|err| format!("Error while running FFMPEG: {}", err))
             .unwrap();
 
-        let frames = process::process_frames(&frames_folder, &video_file);
+        let video = process::process_frames(&frames_folder, &video_file);
 
-        output::output_frames(&output_folder, frames, file_name);
+        output::output_frames(&output_folder, video, file_name);
     }
 }

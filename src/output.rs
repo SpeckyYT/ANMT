@@ -1,14 +1,14 @@
-use std::collections::HashMap;
 use std::io::Write;
 use std::path::PathBuf;
+use super::process::Video;
 
-pub fn output_frames(output_folder: &PathBuf, video_file: Vec<HashMap<(usize, usize), [u8; 4]>>, file_name: String) {
+pub fn output_frames(output_folder: &PathBuf, video: Video, file_name: String) {
     let mut content = String::new();
 
-    // HELP ME, I'M DESPERATE
-    content.push_str("20,20,30\n");
+    // I'm not so desperate anymore 😎
+    content.push_str(format!("{},{},30\n", video.width, video.height).as_str());
 
-    for frame in video_file {
+    for frame in video.frames {
         let mut current_frame = Vec::new();
         for (key, val) in frame.iter() {
             let form = format!("{},{},{},{},{}", key.0, key.1, val[0], val[1], val[2]);

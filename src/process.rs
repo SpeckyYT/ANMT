@@ -6,7 +6,13 @@ use image::*;
 
 const COLOR_PRECISION: u8 = 4;
 
-pub fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Vec<HashMap<(usize,usize), [u8; 4]>> {
+pub struct Video {
+    pub frames: Vec<HashMap<(usize,usize), [u8; 4]>>,
+    pub width: usize,
+    pub height: usize,
+}
+
+pub fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Video {
     let file_name = file_path.file_stem().unwrap().to_str().unwrap();
     let current_folder = frames_folder.join(file_name);
 
@@ -101,7 +107,11 @@ pub fn process_frames(frames_folder: &PathBuf, file_path: &PathBuf) -> Vec<HashM
         log("Frames processed", fr + 1, frame_count);
     }
 
-    return video;
+    Video {
+        frames: video,
+        width: width,
+        height: height,
+    }
 }
 
 fn index_to_position(index: usize, width: usize) -> (usize, usize) {
