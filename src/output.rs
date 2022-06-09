@@ -7,7 +7,7 @@ impl Video {
         let mut content = String::new();
 
         // I'm not so desperate anymore 😎
-        content.push_str(format!("{},{},30\n", self.width, self.height).as_str());
+        content.push_str(format!("{},{},{}\n", self.width, self.height, self.fps).as_str());
 
         for frame in &self.frames {
             let mut current_frame = Vec::new();

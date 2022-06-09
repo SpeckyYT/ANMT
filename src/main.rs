@@ -8,13 +8,23 @@ mod output;
 mod util;
 
 pub struct Video {
-    pub path: PathBuf,
-    pub frames: Vec<HashMap<(usize,usize), [u8; 4]>>,
-    pub width: usize,
-    pub height: usize,
+    path: PathBuf,
+    frames: Vec<HashMap<(usize,usize), [u8; 4]>>,
+    width: usize,
+    height: usize,
+    fps: f64,
 }
 
 impl Video {
+    pub fn new(path: PathBuf) -> Video {
+        Video {
+            path: path,
+            frames: Vec::new(),
+            width: 0,
+            height: 0,
+            fps: 0.0,
+        }
+    }
     pub fn log(&self, message: &str, current: usize, total: usize) {
         println!(
             "{}: {}/{} ({}%)",
@@ -58,12 +68,7 @@ fn main() {
     let video_files = util::find_files(&video_folder, &SUPPORTED_VIDEO_FORMATS);
 
     for video_file in video_files {
-        let mut video = Video {
-            path: video_file.clone(),
-            frames: vec![],
-            width: 0,
-            height: 0,
-        };
+        let mut video = Video::new(video_file);
 
         video.extract_frames(&frames_folder)
             .wait_with_output()
