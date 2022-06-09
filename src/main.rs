@@ -16,9 +16,9 @@ pub struct Video {
 }
 
 impl Video {
-    pub fn new(path: PathBuf) -> Video {
+    pub fn new(file_path: PathBuf) -> Video {
         Video {
-            path: path,
+            path: file_path,
             frames: Vec::new(),
             width: 0,
             height: 0,
@@ -27,7 +27,8 @@ impl Video {
     }
     pub fn log(&self, message: &str, current: usize, total: usize) {
         println!(
-            "{}: {}/{} ({}%)",
+            "[{}] {}: {}/{} ({}%)",
+            self.file_name(""),
             message,
             current,
             total,
