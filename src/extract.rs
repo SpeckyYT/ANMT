@@ -12,13 +12,7 @@ impl Video {
         .args([
             "-i",
             self.path.to_str().unwrap(),
-            current_folder.join(
-                format!(
-                    "{}.%{}d.png",
-                    self.file_name(""),
-                    "6",
-                ),
-            ).to_str().unwrap(),
+            current_folder.join(format!("{}.%6d.png", self.file_name(""))).to_str().unwrap(),
         ])
         .spawn()
         .expect("Failed to execute FFMPEG");
