@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
 use std::thread;
-use super::Video;
+use super::{ Video, PixelUpdate };
 
 use image::*;
 
 const COLOR_PRECISION: u8 = 4;
+const DEFAULT_FPS: f64 = 24.0;
 
 impl Video {
     pub fn process_frames(&mut self, frames_folder: &PathBuf) {
@@ -13,11 +13,7 @@ impl Video {
     
         let frames: Vec<_> = current_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
         let frames: Vec<_> = frames.iter().map(|f|
-            if f.is_err() {
-                f.as_ref().map_err(|err| format!("Frame reading error: {}", err)).unwrap()
-            } else {
-                f.as_ref().unwrap()
-            }
+            f.as_ref().map_err(|err| format!("Frame reading error: {}", err)).unwrap()
         ).collect();
     
         let frame_count = frames.len();
@@ -45,7 +41,6 @@ impl Video {
                 let frame = image::open(frame_path).expect("Failed to read frame");
                 let resized = frame.resize(width as u32, height as u32, imageops::FilterType::Nearest);
                 let pixels = resized.as_rgba8().expect("Wasn't able to get rgba8 from image").pixels();
-    
                 let mut output: Vec<[u8; 4]> = Vec::new();
                 for pixel in pixels {
                     output.push(flatten_color(&pixel.0, COLOR_PRECISION));
@@ -78,7 +73,7 @@ impl Video {
                     None
                 };
     
-            let mut changes = HashMap::new();
+            let mut changes = Vec::new();
     
             for i in 0..current_frame.len() {
                 let (x, y) = index_to_position(i, self.width);
@@ -93,7 +88,7 @@ impl Video {
                     && current_frame[i] == next_frame.unwrap()[i] {
                         continue;
                 }
-                changes.insert((x,y), current_frame[i]);
+                changes.push(PixelUpdate { position: (x,y), color: current_frame[i] });
             }
     
             self.frames.push(changes);

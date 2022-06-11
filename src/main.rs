@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -9,10 +8,15 @@ mod util;
 
 pub struct Video {
     path: PathBuf,
-    frames: Vec<HashMap<(usize,usize), [u8; 4]>>,
+    frames: Vec<Vec<PixelUpdate>>,
     width: usize,
     height: usize,
     fps: f64,
+}
+
+pub struct PixelUpdate {
+    position: (usize, usize),
+    color: [u8; 4],
 }
 
 impl Video {
