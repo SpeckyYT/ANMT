@@ -50,7 +50,9 @@ impl @ANMT {
             for pixel in frame.split(':') {
                 pixel_data = pixel.split(',')
                 if pixel_data.length <= 4 {continue}
-                [ x, y, r, g, b ] = numberize_array(pixel_data)
+                let [ x, y, r, g, b ] = numberize_array(pixel_data)
+                if x >= video_canvas.colors.length { continue }
+                if y >= video_canvas.colors[x].length { continue }
                 to_change.push([
                     video_canvas.colors[x][height-(y+1)],
                     r,g,b
@@ -62,8 +64,8 @@ impl @ANMT {
                     for i in 0..to_change.length {
                         [ target, r, g, b ] = to_change[i]
                         -> match target {
-                            @color: target.set(r,g,b),
-                            @group: target.pulse(r, g, b, hold = 9999),
+                            @color: target.set(rgb8(r,g,b)),
+                            @group: target.pulse(rgb8(r, g, b), hold = 9999),
                         }
                     }
                 })
