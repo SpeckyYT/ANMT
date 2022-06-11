@@ -1,4 +1,4 @@
-import './src'
+import './lib/'
 
 my_video = @ANMT::new(
     filename = './videos/output/file.txt',

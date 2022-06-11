@@ -4,7 +4,7 @@
 name: anmt
 version: 0.0.1
 folders:
-  - src
+  - lib
 
 dependencies:
   - url: https://github.com/SpeckyYT/SPWN-canvas
