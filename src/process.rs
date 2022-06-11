@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::thread;
 use super::{ Video, PixelUpdate };
+use super::util::ffmpeg_probe;
 
 use image::*;
 
@@ -31,6 +32,20 @@ impl Video {
 
         self.width = width;
         self.height = height;
+
+        let data = ffmpeg_probe(&self.path);
+        
+        self.fps = if data.duration.is_some() {
+            let duration = data.duration.unwrap();
+            let value: Result<f64, _> = duration.parse();
+            if value.is_ok() {
+                1000.0 * value.unwrap() / (frame_count as f64)
+            } else {
+                DEFAULT_FPS
+            }
+        } else {
+            DEFAULT_FPS
+        };
 
         let mut processes = Vec::new();
     
