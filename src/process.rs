@@ -23,15 +23,18 @@ impl Video {
         let frame_count = frames.len();
     
         let first_frame = image::open(frames[0].path()).unwrap();
-    
-        let (o_width, o_height) = first_frame.dimensions();
-        let o_pixels: f64 = (o_width as f64) * (o_height as f64);
         
-        let ratio: f64 = (o_width as f64) / (o_height as f64);
-        let scale: f64 = (o_pixels / 999_f64).sqrt();
-        
-        let width = (ratio * (o_width as f64) / scale) as usize;
-        let height = ((o_height as f64) / scale) as usize;
+        // resize first_frame.dimensions() that it uses 999 total pixels or less
+        let (width, height) = first_frame.dimensions();
+        let max = 999;
+        let surface = (width as f64) * (height as f64);
+        let ratio = surface / max as f64;
+        let (width, height) = if ratio <= 1.0 {
+            (width as u8, height as u8)
+        } else {
+            let scale = 1.0 / ratio.sqrt();
+            ((width as f64 * scale).floor() as u8, (height as f64 * scale).floor() as u8)
+        };
 
         self.width = width;
         self.height = height;
@@ -101,7 +104,7 @@ impl Video {
             let mut changes = Vec::new();
     
             for i in 0..current_frame.len() {
-                let (x, y) = index_to_position(i, self.width);
+                let (x, y) = index_to_position(i, self.width.into());
                 if previous_frame.is_some() && next_frame.is_some()
                     && current_frame[i] == previous_frame.unwrap()[i]
                     && current_frame[i] == next_frame.unwrap()[i] {

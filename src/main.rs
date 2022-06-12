@@ -10,8 +10,8 @@ mod util;
 pub struct Video {
     path: PathBuf,
     frames: Vec<Vec<PixelUpdate>>,
-    width: usize,
-    height: usize,
+    width: u8, // atm u8 are enough
+    height: u8,
     duration: f64,
     fps: f64,
     extract_time: Duration,
