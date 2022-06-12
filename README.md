@@ -1,9 +1,6 @@
 # ANMT
 
-| **THIS README ISN'T UPDATED**
-|-
-
-Converts videos to Geometry Dash levels!
+Videos to Geometry Dash level converter!
 
 ## Disclaimer
 
@@ -11,46 +8,65 @@ Converts videos to Geometry Dash levels!
 |-
 | The developers of this project aren't in charge for the end-users' actions.
 
+## How does ANMT work?
+
+```mermaid
+flowchart TB
+  subgraph anmt[ANMT]
+    subgraph rust[Rust]
+      subgraph extract[Extract]
+        ffmpeg[FFMPEG]
+      end
+      extract --> process
+      subgraph process[Process]
+        read[Read frames] --> resize[Resize frames] --> convert[Convert frames]
+      end
+      process --> output
+      subgraph output[Output]
+        stringify[Stringify frames] --> write[Write frames to file]
+      end
+    end
+    subgraph spwn[Spwn]
+      read_s[Read output file] --> convert_s[Convert to triggers]
+    end
+  end
+```
+
 ## Setup
+
+### Self-build
 
 You will require the following software to be installed on your machine before continuing:
 
-- [ ] [Node.js](<https://nodejs.org/en/download/>)
-  - [ ] run `npm i` in the current folder
+- [ ] [Rust](<https://www.rust-lang.org/>)
 - [ ] [FFmpeg](<https://www.ffmpeg.org/download.html>)
   - [ ] add FFmpeg to the environment variables
 - [ ] [SPWN](<https://github.com/spu7Nix/SPWN-language/releases>)
-  - [ ] download the modules imported in `index.spwn`
 
 ## Load images
 
-In the current folder, create a new folder named `videos`.
-In that folder, add the videos you want to process (works best one at a time).
-Be sure that the videos you provide have a simple alphanumeric name.
+In the current folder, create a new folder named `videos/`.
+In that folder, add the videos you want to process.
 
 Note: The longer the videos are, the longer it will take to process and compile them.
 
 ## Process images
 
-Optionally, check out `index.js` and edit the `COLOR_PRECISION` value.
-
-Run `node .` and wait until it's done.
+Run `cargo run --release` and wait until it's done.
 This will extract all the frames from your video and will create a new file in `videos/output/`.
-
-If you only want to update the output file or only extract the frames, change `SKIP_EXTRACTING` or `SKIP_PROCESSING` in `index.js` to true.
 
 ## Compile into Geometry Dash
 
 Check out `videos/output/`, and look for the file you generated.
-Edit the parameter `filename` in `index.spwn` to the path of the file you want to compile.
-Now you can run `spwn build index.spwn --allow readfile`, and slowly but surely it will build your video to your latest Geometry Dash level.
+Edit the parameter `filename` in `example.spwn` to the path of the file you want to compile.
+Now you can run `spwn build example.spwn --allow readfile`, and slowly but surely it will build your video to your latest Geometry Dash level.
 
 ## FAQ
 
-### How do I make the program stop using a file in the `videos` folder?
+### How do I make the program stop processing a file in the `videos/` folder?
 
-Create a sub-folder named in any way and put the video there.
-Otherwise, you can delete it, or remove it from the videos folder.
+Create a sub-folder put the video there.
+Otherwise, you can delete it, or move it to a different folder.
 
 ## Supported video/animation formats
 
