@@ -1,11 +1,14 @@
 use std::io::Write;
 use std::path::PathBuf;
+use std::time::Instant;
 use crate::PixelUpdate;
 
 use super::Video;
 
 impl Video {
-    pub fn output_frames(&self, output_folder: &PathBuf) {
+    pub fn output_frames(&mut self, output_folder: &PathBuf) {
+        let time = Instant::now();
+
         let mut content = String::new();
 
         // I'm not so desperate anymore 😎
@@ -23,5 +26,7 @@ impl Video {
         
         let mut file = std::fs::File::create(output_folder.join(self.file_name("txt"))).unwrap();
         file.write_all(content.as_bytes()).expect("Failed to write to file");
+
+        self.output_time = time.elapsed();
     }
 }

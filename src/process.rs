@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::thread;
+use std::time::Instant;
 use super::{ Video, PixelUpdate };
 use super::util::ffmpeg_probe;
 
@@ -10,6 +11,8 @@ const DEFAULT_FPS: f64 = 24.0;
 
 impl Video {
     pub fn process_frames(&mut self, frames_folder: &PathBuf) {
+        let time = Instant::now();
+
         let current_folder = frames_folder.join(self.file_name(""));
     
         let frames: Vec<_> = current_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
@@ -35,16 +38,23 @@ impl Video {
 
         let data = ffmpeg_probe(&self.path);
         
+        let mut default_fps = || {
+            self.duration = (frame_count as f64) / DEFAULT_FPS;
+            DEFAULT_FPS
+        };
+
         self.fps = if data.duration.is_some() {
             let duration = data.duration.unwrap();
-            let value: Result<f64, _> = duration.parse();
-            if value.is_ok() {
-                1000.0 * value.unwrap() / (frame_count as f64)
+            let duration: Result<f64, _> = duration.parse();
+            if duration.is_ok() {
+                let duration = duration.unwrap();
+                self.duration = duration;
+                1000.0 * duration / (frame_count as f64)
             } else {
-                DEFAULT_FPS
+                default_fps()
             }
         } else {
-            DEFAULT_FPS
+            default_fps()
         };
 
         let mut processes = Vec::new();
@@ -110,6 +120,8 @@ impl Video {
     
             self.log("Frames processed", fr + 1, frame_count);
         }
+
+        self.process_time = time.elapsed();
     }    
 }
 
