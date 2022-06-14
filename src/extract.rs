@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::Instant;
-use super::Video;
+
+use crate::Video;
 
 impl Video {
     pub fn extract_frames(&mut self, frames_folder: &PathBuf) {
