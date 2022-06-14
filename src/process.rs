@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 use std::time::Instant;
-use super::{ Video, PixelUpdate };
-use super::util::ffmpeg_probe;
+
+use crate::{ Video, PixelUpdate };
+use crate::util::ffmpeg_probe;
 
 use image::*;
 

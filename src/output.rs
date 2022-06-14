@@ -2,24 +2,36 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::time::Instant;
 use std::fs::File;
-use crate::PixelUpdate;
+use json::{object, array};
 
-use super::Video;
+use crate::PixelUpdate;
+use crate::Video;
 
 impl Video {
     pub fn output_frames(&mut self, output_folder: &PathBuf) {
         let time = Instant::now();
 
         let mut txt = String::new();
-        let mut anmt = vec![self.width, self.height];
-
         txt.push_str(format!("{},{},{}\n", self.width, self.height, self.fps).as_str());
-        anmt.push(self.fps.floor().clamp(0.0, 255.0) as u8);
-        anmt.push((self.fps.fract() * 256.0) as u8);
+
+        let mut anmt = vec![
+            self.width,
+            self.height,
+            self.fps.floor().clamp(0.0, 255.0) as u8,
+            (self.fps.fract() * 256.0) as u8,
+        ];
+
+        let mut json = object!{
+            "width" => self.width,
+            "height" => self.height,
+            "fps" => self.fps,
+            "frames" => array![],
+        };
 
         for frame in &self.frames {
             let mut txt_current_frame = Vec::new();
             anmt.push(0);
+            json["frames"].push(array![]).unwrap();
 
             for PixelUpdate { position, color } in frame {
                 txt_current_frame.push(format!("{},{},{},{},{}", position.0, position.1, color[0], color[1], color[2]));
@@ -29,6 +41,17 @@ impl Video {
                 anmt.push(color[0]);
                 anmt.push(color[1]);
                 anmt.push(color[2]);
+
+                let json_last_frame = json["frames"].len()-1;
+                json["frames"][json_last_frame].push(
+                    array![
+                        position.0,
+                        position.1,
+                        color[0],
+                        color[1],
+                        color[2],
+                    ]
+                ).unwrap();
             }
 
             txt.push_str(&txt_current_frame.join(":"));
@@ -42,6 +65,10 @@ impl Video {
         // .anmt
         let mut file = File::create(output_folder.join(self.file_name("anmt"))).unwrap();
         file.write_all(&anmt).unwrap();
+
+        // .json
+        let mut file = File::create(output_folder.join(self.file_name("json"))).unwrap();
+        file.write_all(json.to_string().as_bytes()).unwrap();
 
         self.output_time = time.elapsed();
     }
