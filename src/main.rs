@@ -63,7 +63,7 @@ impl Video {
         self.log(format!("{} frames", self.frames.len()));
         self.log(format!("{} frames per second", self.fps));
         self.log(format!("{} seconds duration", self.duration));
-        self.log(format!("{} pixels ({}x{})", self.width * self.height, self.width, self.height));
+        self.log(format!("{} pixels ({}x{})", self.width as u16 * self.height as u16, self.width, self.height));
         self.log(format!("{} color change triggers", self.frames.iter().map(|f| f.len()).sum::<usize>()));
         self.log(format!("{}s extract time", self.extract_time.as_secs_f64()));
         self.log(format!("{}s process time", self.process_time.as_secs_f64()));
