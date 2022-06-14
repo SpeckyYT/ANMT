@@ -1,12 +1,11 @@
 use std::path::PathBuf;
-use std::thread;
 use std::time::Instant;
 use super::{ Video, PixelUpdate };
 use super::util::ffmpeg_probe;
 
 use image::*;
 
-const COLOR_PRECISION: u8 = 4;
+const COLOR_PRECISION: u8 = 6;
 const DEFAULT_FPS: f64 = 24.0;
 
 impl Video {
@@ -60,43 +59,35 @@ impl Video {
             default_fps()
         };
 
-        let mut processes = Vec::new();
-    
+        let mut new_frames = Vec::new();
+
         for frame_index in 0..frame_count {
             let frame_entry = frames[frame_index].path();
-            let thread = thread::spawn(move || {
-                let frame_path = frame_entry;
-                let frame = image::open(frame_path).expect("Failed to read frame");
-                let resized = frame.resize(width as u32, height as u32, imageops::FilterType::Nearest);
-                let pixels = resized.as_rgba8().expect("Wasn't able to get rgba8 from image").pixels();
-                let mut output: Vec<[u8; 4]> = Vec::new();
-                for pixel in pixels {
-                    output.push(flatten_color(&pixel.0, COLOR_PRECISION));
-                }
-                return output;
-            });
-            processes.push(thread);
-            self.log("Frames spawned", processes.len(), frame_count)
-        }
-    
-        let mut frames = Vec::new();
-        let frame_count = processes.len();
-        for process in processes {
-            frames.push(process.join().unwrap());
-            self.log("Frames resized", frames.len(), frame_count)
+            let frame_path = frame_entry;
+            let frame = image::open(frame_path).expect("Failed to read frame");
+            let resized = frame.resize(width as u32, height as u32, imageops::FilterType::Nearest);
+            let resized = resized.to_rgba8();
+            let pixels = resized.pixels();
+
+            let mut output: Vec<[u8; 4]> = Vec::new();
+            for pixel in pixels {
+                output.push(flatten_color(&pixel.0, COLOR_PRECISION));
+            }
+            new_frames.push(output);
+            self.log("Frames resized", frame_index + 1, frame_count);
         }
 
-        for fr in 0..frames.len() {
-            let current_frame = &frames[fr];
+        for fr in 0..new_frames.len() {
+            let current_frame = &new_frames[fr];
             let previous_frame =
                 if fr > 0 {
-                    Some(&frames[fr-1])
+                    Some(&new_frames[fr-1])
                 } else {
                     None
                 };
             let next_frame =
-                if fr < frames.len() - 1 && false { // maybe for the future
-                    Some(&frames[fr+1])
+                if fr < new_frames.len() - 1 && false { // maybe for the future
+                    Some(&new_frames[fr+1])
                 } else {
                     None
                 };
@@ -116,7 +107,7 @@ impl Video {
                     && current_frame[i] == next_frame.unwrap()[i] {
                         continue;
                 }
-                changes.push(PixelUpdate { position: (x,y), color: current_frame[i] });
+                changes.push(PixelUpdate { position: (x as u8, y as u8), color: current_frame[i] });
             }
     
             self.frames.push(changes);

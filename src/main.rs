@@ -20,7 +20,7 @@ pub struct Video {
 }
 
 pub struct PixelUpdate {
-    position: (usize, usize),
+    position: (u8, u8),
     color: [u8; 4],
 }
 
