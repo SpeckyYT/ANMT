@@ -112,5 +112,5 @@ fn main() {
     video.process_frames(&frames_folder);
     video.output_frames(&video_folder);
 
-    if !quiet { video.log_final() };
+    video.log_final();
 }

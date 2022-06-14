@@ -59,17 +59,25 @@ impl Video {
         }
         
         // .txt
-        let mut file = File::create(output_folder.join("output.txt")).unwrap();
-        file.write_all(txt.as_bytes()).unwrap();
-
+        write_file_u8(
+            &output_folder.join(self.file_name("json")),
+            txt.as_bytes(),
+        );
         // .anmt
-        let mut file = File::create(output_folder.join(self.file_name("anmt"))).unwrap();
-        file.write_all(&anmt).unwrap();
-
+        write_file_u8(
+            &output_folder.join(self.file_name("anmt")),
+            &anmt,
+        );
         // .json
-        let mut file = File::create(output_folder.join(self.file_name("json"))).unwrap();
-        file.write_all(json.to_string().as_bytes()).unwrap();
+        write_file_u8(
+            &output_folder.join(self.file_name("json")),
+            json.to_string().as_bytes(),
+        );
 
         self.output_time = time.elapsed();
     }
+}
+
+fn write_file_u8(file: &PathBuf, value: &[u8]) {
+    File::create(file).unwrap().write_all(value).unwrap();
 }
