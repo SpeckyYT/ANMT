@@ -12,10 +12,8 @@ const DEFAULT_FPS: f64 = 24.0;
 impl Video {
     pub fn process_frames(&mut self, frames_folder: &PathBuf) {
         let time = Instant::now();
-
-        let current_folder = frames_folder.join(self.file_name(""));
     
-        let frames: Vec<_> = current_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
+        let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
         let frames: Vec<_> = frames.iter().map(|f|
             f.as_ref().map_err(|err| format!("Frame reading error: {}", err)).unwrap()
         ).collect();
@@ -75,7 +73,7 @@ impl Video {
                 output.push(flatten_color(&pixel.0, COLOR_PRECISION));
             }
             new_frames.push(output);
-            self.log("Frames resized", frame_index + 1, frame_count);
+            self.log_percent("Frames resized", frame_index + 1, frame_count);
         }
 
         for fr in 0..new_frames.len() {
@@ -113,7 +111,7 @@ impl Video {
     
             self.frames.push(changes);
     
-            self.log("Frames processed", fr + 1, frame_count);
+            self.log_percent("Frames processed", fr + 1, frame_count);
         }
 
         self.process_time = time.elapsed();
