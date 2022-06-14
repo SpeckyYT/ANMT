@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::path::PathBuf;
 use std::time::Instant;
+use std::fs::File;
 use crate::PixelUpdate;
 
 use super::Video;
@@ -9,23 +10,38 @@ impl Video {
     pub fn output_frames(&mut self, output_folder: &PathBuf) {
         let time = Instant::now();
 
-        let mut content = String::new();
+        let mut txt = String::new();
+        let mut anmt = vec![self.width, self.height];
 
-        // I'm not so desperate anymore 😎
-        content.push_str(format!("{},{},{}\n", self.width, self.height, self.fps).as_str());
+        txt.push_str(format!("{},{},{}\n", self.width, self.height, self.fps).as_str());
+        anmt.push(self.fps.floor().clamp(0.0, 255.0) as u8);
+        anmt.push((self.fps.fract() * 256.0) as u8);
 
         for frame in &self.frames {
-            let mut current_frame = Vec::new();
+            let mut txt_current_frame = Vec::new();
+            anmt.push(0);
+
             for PixelUpdate { position, color } in frame {
-                let form = format!("{},{},{},{},{}", position.0, position.1, color[0], color[1], color[2]);
-                current_frame.push(form);
+                txt_current_frame.push(format!("{},{},{},{},{}", position.0, position.1, color[0], color[1], color[2]));
+                
+                anmt.push(position.0 + 1);
+                anmt.push(position.1 + 1);
+                anmt.push(color[0]);
+                anmt.push(color[1]);
+                anmt.push(color[2]);
             }
-            content.push_str(&current_frame.join(":"));
-            content.push_str("\n");
+
+            txt.push_str(&txt_current_frame.join(":"));
+            txt.push_str("\n");
         }
         
-        let mut file = std::fs::File::create(output_folder.join(self.file_name("txt"))).unwrap();
-        file.write_all(content.as_bytes()).expect("Failed to write to file");
+        // .txt
+        let mut file = File::create(output_folder.join("output.txt")).unwrap();
+        file.write_all(txt.as_bytes()).unwrap();
+
+        // .anmt
+        let mut file = File::create(output_folder.join(self.file_name("anmt"))).unwrap();
+        file.write_all(&anmt).unwrap();
 
         self.output_time = time.elapsed();
     }
