@@ -60,7 +60,7 @@ impl Video {
         
         // .txt
         write_file_u8(
-            &output_folder.join(self.file_name("json")),
+            &output_folder.join(self.file_name("txt")),
             txt.as_bytes(),
         );
         // .anmt

@@ -85,11 +85,13 @@ fn main() {
     .args(&[
         arg!(<VIDEO_FILE> "Video file to process").value_hint(ValueHint::FilePath),
         arg!(-q --quiet "Don't print anything"),
+        arg!(-e --skip_extract "Skip extraction"),
     ])
     .get_matches();
 
     let video_file = matches.value_of("VIDEO_FILE").unwrap();
     let quiet = matches.is_present("quiet");
+    let skip_extract = matches.is_present("skip_extract");
 
     let video_file = PathBuf::from(video_file);
     let video_file = if video_file.is_relative() { std::env::current_dir().unwrap().join(video_file) } else { video_file };
@@ -108,7 +110,7 @@ fn main() {
         panic!("Could not create folder: `{}`", frames_folder.to_str().unwrap());
     }
 
-    video.extract_frames(&frames_folder, quiet);
+    if !skip_extract { video.extract_frames(&frames_folder); }
     video.process_frames(&frames_folder);
     video.output_frames(&video_folder);
 

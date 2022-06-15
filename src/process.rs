@@ -8,6 +8,7 @@ use image::*;
 
 const COLOR_PRECISION: u8 = 6;
 const DEFAULT_FPS: f64 = 24.0;
+const MAX_PIXELS: f64 = 999.0;
 
 impl Video {
     pub fn process_frames(&mut self, frames_folder: &PathBuf) {
@@ -24,9 +25,8 @@ impl Video {
         
         // resize first_frame.dimensions() that it uses 999 total pixels or less
         let (width, height) = first_frame.dimensions();
-        let max = 999;
         let surface = (width as f64) * (height as f64);
-        let ratio = surface / max as f64;
+        let ratio = surface / MAX_PIXELS as f64;
         let (width, height) = if ratio <= 1.0 {
             (width as u8, height as u8)
         } else {
