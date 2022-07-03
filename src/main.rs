@@ -79,6 +79,13 @@ impl Video {
     }    
 }
 
+pub enum Optimization {
+    None,
+    Forward,
+    Backward,
+    Both,       // will actually use more objects than Forward or Backward
+}
+
 fn main() {
     let matches = Command::new("ANMT")
     .arg_required_else_help(true)
@@ -86,12 +93,23 @@ fn main() {
         arg!(<VIDEO_FILE> "Video file to process").value_hint(ValueHint::FilePath),
         arg!(-q --quiet "Don't print anything"),
         arg!(-e --skip_extract "Skip extraction"),
+        arg!(-o --optimize [optimization] "Optimize the video (none, forward, backward, both)"),
     ])
     .get_matches();
 
     let video_file = matches.value_of("VIDEO_FILE").unwrap();
     let quiet = matches.is_present("quiet");
     let skip_extract = matches.is_present("skip_extract");
+    let optimization = match matches.value_of("optimize") {
+        Some(o) => match o {
+            "none" => Optimization::None,
+            "forward" => Optimization::Forward,
+            "backward" => Optimization::Backward,
+            "both" => Optimization::Both,
+            _ => panic!("Unknown optimization"),
+        },
+        None => Optimization::Forward,
+    };
 
     let video_file = PathBuf::from(video_file);
     let video_file = if video_file.is_relative() { std::env::current_dir().unwrap().join(video_file) } else { video_file };
@@ -111,7 +129,7 @@ fn main() {
     }
 
     if !skip_extract { video.extract_frames(&frames_folder); }
-    video.process_frames(&frames_folder);
+    video.process_frames(&frames_folder, optimization);
     video.output_frames(&video_folder);
 
     video.log_final();

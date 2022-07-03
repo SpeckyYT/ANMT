@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::time::Instant;
 
-use crate::{ Video, PixelUpdate };
+use crate::{ Video, PixelUpdate, Optimization };
 use crate::util::ffmpeg_probe;
 
 use image::*;
@@ -11,7 +11,7 @@ const DEFAULT_FPS: f64 = 24.0;
 const MAX_PIXELS: f64 = 999.0;
 
 impl Video {
-    pub fn process_frames(&mut self, frames_folder: &PathBuf) {
+    pub fn process_frames(&mut self, frames_folder: &PathBuf, optimize: Optimization) {
         let time = Instant::now();
     
         let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
@@ -58,7 +58,7 @@ impl Video {
             default_fps()
         };
 
-        let mut new_frames = Vec::new();
+        let mut new_frames = vec![];
 
         for frame_index in 0..frame_count {
             let frame_entry = frames[frame_index].path();
@@ -78,34 +78,35 @@ impl Video {
 
         for fr in 0..new_frames.len() {
             let current_frame = &new_frames[fr];
-            let previous_frame =
-                if fr > 0 {
-                    Some(&new_frames[fr-1])
-                } else {
-                    None
-                };
-            let next_frame =
-                if fr < new_frames.len() - 1 && false { // maybe for the future
-                    Some(&new_frames[fr+1])
-                } else {
-                    None
-                };
+            let previous_frame = new_frames.get(fr - 1);
+            let next_frame = new_frames.get(fr + 1);
     
             let mut changes = Vec::new();
     
             for i in 0..current_frame.len() {
-                let (x, y) = index_to_position(i, self.width.into());
-                if previous_frame.is_some() && next_frame.is_some()
-                    && current_frame[i] == previous_frame.unwrap()[i]
-                    && current_frame[i] == next_frame.unwrap()[i] {
-                        continue;
-                } else if previous_frame.is_some()
-                    && current_frame[i] == previous_frame.unwrap()[i] {
-                        continue;
-                } else if next_frame.is_some()
-                    && current_frame[i] == next_frame.unwrap()[i] {
-                        continue;
+                match optimize {
+                    Optimization::None => (),
+                    Optimization::Forward => {
+                        if previous_frame.is_some() {
+                            let previous_frame = previous_frame.unwrap();
+                            if current_frame[i] == previous_frame[i] { continue }
+                        }
+                    },
+                    Optimization::Backward => {
+                        if next_frame.is_some() {
+                            let next_frame = next_frame.unwrap();
+                            if current_frame[i] == next_frame[i] { continue }
+                        }
+                    },
+                    Optimization::Both => {
+                        if previous_frame.is_some() && next_frame.is_some() {
+                            let previous_frame = previous_frame.unwrap();
+                            let next_frame = next_frame.unwrap();
+                            if current_frame[i] == previous_frame[i] && current_frame[i] == next_frame[i] { continue }
+                        }
+                    }
                 }
+                let (x, y) = index_to_position(i, self.width.into());
                 changes.push(PixelUpdate { position: (x as u8, y as u8), color: current_frame[i] });
             }
     
@@ -125,7 +126,7 @@ fn index_to_position(index: usize, width: usize) -> (usize, usize) {
 }
 
 fn flatten_int(number: u8, bits: u8) -> u8 {
-    let bits = bits^2;
+    let bits = 2_u128.pow(bits.into());
     ((number as f64 / bits as f64).round() * bits as f64) as u8
 }
 
