@@ -1,7 +1,6 @@
 use std::path::PathBuf;
-use std::time::Instant;
-
-use crate::{ Video, PixelUpdate, Optimization };
+use std::time::{Instant, Duration};
+use crate::lib::{ Video, PixelUpdate, Optimization };
 use crate::util::ffmpeg_probe;
 
 use image::*;
@@ -11,7 +10,7 @@ const DEFAULT_FPS: f64 = 24.0;
 const MAX_PIXELS: f64 = 999.0;
 
 impl Video {
-    pub fn process_frames(&mut self, frames_folder: &PathBuf, optimize: Optimization) {
+    pub fn process_frames(&mut self, frames_folder: &PathBuf) -> Duration {
         let time = Instant::now();
     
         let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
@@ -64,7 +63,7 @@ impl Video {
             let frame_entry = frames[frame_index].path();
             let frame_path = frame_entry;
             let frame = image::open(frame_path).expect("Failed to read frame");
-            let resized = frame.resize(width as u32, height as u32, imageops::FilterType::Nearest);
+            let resized = frame.resize(width as u32, height as u32, self.filter);
             let resized = resized.to_rgba8();
             let pixels = resized.pixels();
 
@@ -84,7 +83,7 @@ impl Video {
             let mut changes = Vec::new();
     
             for i in 0..current_frame.len() {
-                match optimize {
+                match self.optimization {
                     Optimization::None => (),
                     Optimization::Forward => {
                         if previous_frame.is_some() {
@@ -115,7 +114,7 @@ impl Video {
             self.log_percent("Frames processed", fr + 1, frame_count);
         }
 
-        self.process_time = time.elapsed();
+        time.elapsed()
     }    
 }
 
