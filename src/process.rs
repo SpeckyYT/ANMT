@@ -5,14 +5,12 @@ use crate::util::ffmpeg_probe;
 
 use image::*;
 
-const COLOR_PRECISION: u8 = 6;
 const DEFAULT_FPS: f64 = 24.0;
-const MAX_PIXELS: f64 = 999.0;
 
 impl Video {
     pub fn process_frames(&mut self, frames_folder: &PathBuf) -> Duration {
         let time = Instant::now();
-    
+
         let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
         let frames: Vec<_> = frames.iter().map(|f|
             f.as_ref().map_err(|err| format!("Frame reading error: {}", err)).unwrap()
@@ -25,12 +23,12 @@ impl Video {
         // resize first_frame.dimensions() that it uses 999 total pixels or less
         let (width, height) = first_frame.dimensions();
         let surface = (width as f64) * (height as f64);
-        let ratio = surface / MAX_PIXELS as f64;
+        let ratio = surface / self.max_pixels as f64;
         let (width, height) = if ratio <= 1.0 {
-            (width as u8, height as u8)
+            (width as usize, height as usize)
         } else {
             let scale = 1.0 / ratio.sqrt();
-            ((width as f64 * scale).floor() as u8, (height as f64 * scale).floor() as u8)
+            ((width as f64 * scale).floor() as usize, (height as f64 * scale).floor() as usize)
         };
 
         self.width = width;
@@ -49,7 +47,7 @@ impl Video {
             if duration.is_ok() {
                 let duration = duration.unwrap();
                 self.duration = duration;
-                1000.0 * duration / (frame_count as f64)
+                frame_count as f64 / duration
             } else {
                 default_fps()
             }
@@ -69,7 +67,7 @@ impl Video {
 
             let mut output: Vec<[u8; 4]> = Vec::new();
             for pixel in pixels {
-                output.push(flatten_color(&pixel.0, COLOR_PRECISION));
+                output.push(flatten_color(&pixel.0, self.color_precision));
             }
             new_frames.push(output);
             self.log_percent("Frames resized", frame_index + 1, frame_count);
@@ -105,7 +103,7 @@ impl Video {
                         }
                     }
                 }
-                let (x, y) = index_to_position(i, self.width.into());
+                let (x, y) = index_to_position(i, self.width);
                 changes.push(PixelUpdate { position: (x as u8, y as u8), color: current_frame[i] });
             }
     
@@ -124,9 +122,10 @@ fn index_to_position(index: usize, width: usize) -> (usize, usize) {
     (x, y)
 }
 
-fn flatten_int(number: u8, bits: u8) -> u8 {
-    let bits = 2_u128.pow(bits.into());
-    ((number as f64 / bits as f64).round() * bits as f64) as u8
+fn flatten_int(number: u8, bits: u8) -> u8 { // (2^bits + 1) steps
+    if bits >= 8 { return number }
+    let max = 2u128.pow(9u32 - bits as u32);
+    ((number as f32 / max as f32).round() * max as f32) as u8
 }
 
 fn flatten_color(color: &[u8; 4], bits: u8) -> [u8; 4] {

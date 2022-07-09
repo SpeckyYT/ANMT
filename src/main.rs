@@ -12,6 +12,11 @@ use clap::arg;
 use image::imageops::FilterType;
 use lib::{ Video, Optimization };
 
+const DEFAULT_OPTIMIZATION: Optimization = Optimization::Forward;
+const DEFAULT_FILTER: FilterType = FilterType::Triangle;
+const DEFAULT_COLOR_PRECISION: u8 = 6;
+const DEFAULT_PIXELS: u32 = 999;
+
 fn main() {
     let matches = Command::new("ANMT")
     .arg_required_else_help(true)
@@ -21,6 +26,8 @@ fn main() {
         arg!(-e --skip_extract "Skip extraction"),
         arg!(-o --optimize [optimization] "Optimize the video (none, forward, backward, both)"),
         arg!(-f --filter [filter] "Filter the video (nearest, linear, cubic, gaussian, lanczos3)"),
+        arg!(-b --bits [bits] "Color precision (1-8) (8 is best)"),
+        arg!(-p --pixels [pixels] "Maximum number of pixels to output"),
     ])
     .get_matches();
 
@@ -38,7 +45,7 @@ fn main() {
             "both" => Optimization::Both,
             _ => panic!("Unknown optimization"),
         },
-        None => Optimization::Forward,
+        None => DEFAULT_OPTIMIZATION,
     };
     let filter = match matches.value_of("filter") {
         Some(f) => match f {
@@ -49,10 +56,29 @@ fn main() {
             "lanczos3" => FilterType::Lanczos3,
             _ => panic!("Unknown filter"),
         },
-        None => FilterType::Triangle,
+        None => DEFAULT_FILTER,
+    };
+    let color_precision = match matches.value_of("bits") {
+        Some(b) if b.len() == 1 => match b.chars().next().unwrap() {
+            '1'..='8' => b.parse().unwrap(),
+            _ => DEFAULT_COLOR_PRECISION,
+        },
+        _ => DEFAULT_COLOR_PRECISION,
+    };
+    let max_pixels = match matches.value_of("pixels") {
+        Some(m) => m.parse::<u32>().unwrap_or(DEFAULT_PIXELS),
+        None => DEFAULT_PIXELS,
     };
 
-    let mut video = Video::new(&video_file, quiet, skip_extract, optimization, filter);
+    let mut video = Video::new(
+        &video_file,
+        quiet,
+        skip_extract,
+        optimization,
+        filter,
+        color_precision,
+        max_pixels,
+    );
 
     if !video_file.exists() { panic!("Path does not exist") }
     if !video_file.is_file() { panic!("Path is not a file") }

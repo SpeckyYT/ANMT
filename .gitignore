@@ -1,14 +1,13 @@
 # ANMT
 /videos
+*.png
+*.json
+*.anmt
+*.txt
 
 # PCKP
 /.pckp_tmp
 /pckp_libraries/
 
-# Node
-/node_modules
-package-lock.json
-
 # Rust
-
 /target

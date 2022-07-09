@@ -5,8 +5,8 @@ use image::imageops::FilterType;
 pub struct Video {
     pub path: PathBuf,
     pub frames: Vec<Vec<PixelUpdate>>,
-    pub width: u8, // atm u8 are enough
-    pub height: u8,
+    pub width: usize,
+    pub height: usize,
     pub duration: f64,
     pub fps: f64,
     pub quiet: bool,
@@ -16,6 +16,8 @@ pub struct Video {
     pub skip_extract: bool,
     pub optimization: Optimization,
     pub filter: FilterType,
+    pub color_precision: u8,
+    pub max_pixels: u32,
 }
 
 pub struct PixelUpdate {
@@ -30,6 +32,8 @@ impl Video {
         skip_extract: bool,
         optimization: Optimization,
         filter: FilterType,
+        color_precision: u8,
+        max_pixels: u32,
     ) -> Video {
         Video {
             path: file_path.to_path_buf(),
@@ -45,6 +49,8 @@ impl Video {
             skip_extract: skip_extract,
             optimization: optimization,
             filter: filter,
+            color_precision: color_precision,
+            max_pixels: max_pixels,
         }
     }
     pub fn log(&self, message: String) {

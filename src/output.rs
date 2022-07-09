@@ -52,8 +52,8 @@ fn convert_to_txt(video: &Video) -> String {
 
 fn convert_to_anmt(video: &Video) -> Vec<u8> {
     let mut anmt = vec![
-        video.width,
-        video.height,
+        video.width as u8,
+        video.height as u8,
         video.fps.floor().clamp(0.0, 255.0) as u8,
         (video.fps.fract() * 256.0) as u8,
     ];
