@@ -9,11 +9,10 @@ use std::fs;
 use clap::Command;
 use clap::ValueHint;
 use clap::arg;
-use image::imageops::FilterType;
-use lib::{ Video, Optimization };
+use lib::{ Video, Optimization, Filter };
 
 const DEFAULT_OPTIMIZATION: Optimization = Optimization::Forward;
-const DEFAULT_FILTER: FilterType = FilterType::Triangle;
+const DEFAULT_FILTER: Filter = Filter::Linear;
 const DEFAULT_COLOR_PRECISION: u8 = 6;
 const DEFAULT_PIXELS: u32 = 999;
 
@@ -49,11 +48,11 @@ fn main() {
     };
     let filter = match matches.value_of("filter") {
         Some(f) => match f {
-            "nearest" => FilterType::Nearest,
-            "linear" => FilterType::Triangle,
-            "cubic" => FilterType::CatmullRom,
-            "gaussian" => FilterType::Gaussian,
-            "lanczos3" => FilterType::Lanczos3,
+            "nearest" => Filter::Nearest,
+            "linear" => Filter::Linear,
+            "cubic" => Filter::Cubic,
+            "gaussian" => Filter::Gaussian,
+            "lanczos3" => Filter::Lanczos3,
             _ => panic!("Unknown filter"),
         },
         None => DEFAULT_FILTER,

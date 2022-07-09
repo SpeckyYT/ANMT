@@ -61,7 +61,7 @@ impl Video {
             let frame_entry = frames[frame_index].path();
             let frame_path = frame_entry;
             let frame = image::open(frame_path).expect("Failed to read frame");
-            let resized = frame.resize(width as u32, height as u32, self.filter);
+            let resized = frame.resize(width as u32, height as u32, self.filter.to_filter_type());
             let resized = resized.to_rgba8();
             let pixels = resized.pixels();
 
