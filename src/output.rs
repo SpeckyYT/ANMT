@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{Instant, Duration};
 use std::fs::File;
 use json::{object, array, JsonValue};
@@ -8,7 +8,7 @@ use crate::lib::PixelUpdate;
 use crate::Video;
 
 impl Video {
-    pub fn output_frames(&self, output_folder: &PathBuf) -> Duration {
+    pub fn output_frames(&self, output_folder: &Path) -> Duration {
         let time = Instant::now();
 
         // .txt
@@ -45,7 +45,7 @@ fn convert_to_txt(video: &Video) -> String {
             txt_current_frame.push(format!("{},{},{},{},{}", position.0, position.1, color[0], color[1], color[2]));
         }
         txt.push_str(&txt_current_frame.join(":"));
-        txt.push_str("\n");
+        txt.push('\n');
     }
     txt
 }

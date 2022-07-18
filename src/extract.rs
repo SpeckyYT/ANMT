@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 use std::process::Stdio;
 use std::time::Duration;
@@ -7,7 +7,7 @@ use std::time::Instant;
 use crate::lib::Video;
 
 impl Video {
-    pub fn extract_frames(&self, frames_folder: &PathBuf) -> Duration {
+    pub fn extract_frames(&self, frames_folder: &Path) -> Duration {
         let time = Instant::now();
 
         let stdio_inherit = || if self.quiet { Stdio::null() } else { Stdio::inherit() };

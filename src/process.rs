@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::{Instant, Duration};
 use crate::lib::{ Video, PixelUpdate, Optimization };
 use crate::util::ffmpeg_probe;
@@ -8,7 +8,7 @@ use image::*;
 const DEFAULT_FPS: f64 = 24.0;
 
 impl Video {
-    pub fn process_frames(&mut self, frames_folder: &PathBuf) -> Duration {
+    pub fn process_frames(&mut self, frames_folder: &Path) -> Duration {
         let time = Instant::now();
 
         let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
@@ -19,8 +19,7 @@ impl Video {
         let frame_count = frames.len();
     
         let first_frame = image::open(frames[0].path()).unwrap();
-        
-        // resize first_frame.dimensions() that it uses 999 total pixels or less
+
         let (width, height) = first_frame.dimensions();
         let surface = (width as f64) * (height as f64);
         let ratio = surface / self.max_pixels as f64;
@@ -44,8 +43,7 @@ impl Video {
         self.fps = if data.duration.is_some() {
             let duration = data.duration.unwrap();
             let duration: Result<f64, _> = duration.parse();
-            if duration.is_ok() {
-                let duration = duration.unwrap();
+            if let Ok(duration) = duration {
                 self.duration = duration;
                 frame_count as f64 / duration
             } else {
@@ -57,9 +55,8 @@ impl Video {
 
         let mut new_frames = vec![];
 
-        for frame_index in 0..frame_count {
-            let frame_entry = frames[frame_index].path();
-            let frame_path = frame_entry;
+        for (frame_index, frame_entry) in frames.iter().enumerate().take(frame_count) {
+            let frame_path = frame_entry.path();
             let frame = image::open(frame_path).expect("Failed to read frame");
             let resized = frame.resize(width as u32, height as u32, self.filter.to_filter_type());
             let resized = resized.to_rgba8();
@@ -84,21 +81,17 @@ impl Video {
                 match self.optimization {
                     Optimization::None => (),
                     Optimization::Forward => {
-                        if previous_frame.is_some() {
-                            let previous_frame = previous_frame.unwrap();
+                        if let Some(previous_frame) = previous_frame {
                             if current_frame[i] == previous_frame[i] { continue }
                         }
                     },
                     Optimization::Backward => {
-                        if next_frame.is_some() {
-                            let next_frame = next_frame.unwrap();
+                        if let Some(next_frame) = next_frame {
                             if current_frame[i] == next_frame[i] { continue }
                         }
                     },
                     Optimization::Both => {
-                        if previous_frame.is_some() && next_frame.is_some() {
-                            let previous_frame = previous_frame.unwrap();
-                            let next_frame = next_frame.unwrap();
+                        if let (Some(previous_frame), Some(next_frame)) = (previous_frame, next_frame) {
                             if current_frame[i] == previous_frame[i] && current_frame[i] == next_frame[i] { continue }
                         }
                     }
@@ -129,9 +122,10 @@ fn flatten_int(number: u8, bits: u8) -> u8 { // (2^bits + 1) steps
 }
 
 fn flatten_color(color: &[u8; 4], bits: u8) -> [u8; 4] {
-    let mut output = [color[3]; 4];
-    output[0] = flatten_int(color[0], bits);
-    output[1] = flatten_int(color[1], bits);
-    output[2] = flatten_int(color[2], bits);
-    return output;
+    [
+        flatten_int(color[0], bits),
+        flatten_int(color[1], bits),
+        flatten_int(color[2], bits),
+        color[3],
+    ]
 }

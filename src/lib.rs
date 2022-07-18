@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use image::imageops::FilterType;
 
@@ -27,7 +27,7 @@ pub struct PixelUpdate {
 
 impl Video {
     pub fn new(
-        file_path: &PathBuf,
+        file_path: &Path,
         quiet: bool,
         skip_extract: bool,
         optimization: Optimization,
@@ -42,15 +42,15 @@ impl Video {
             height: 0,
             duration: 0.0,
             fps: 0.0,
-            quiet: quiet,
+            quiet,
             extract_time: Duration::default(),
             process_time: Duration::default(),
             output_time: Duration::default(),
-            skip_extract: skip_extract,
-            optimization: optimization,
-            filter: filter,
-            color_precision: color_precision,
-            max_pixels: max_pixels,
+            skip_extract,
+            optimization,
+            filter,
+            color_precision,
+            max_pixels,
         }
     }
     pub fn log(&self, message: String) {
@@ -88,7 +88,7 @@ impl Video {
     }
     pub fn file_name(&self, extension: &str) -> String {
         let file_name = self.path.file_stem().unwrap().to_str().unwrap();
-        if extension.len() > 0 {
+        if !extension.is_empty() {
             format!("{}.{}", file_name, extension)
         } else {
             file_name.to_string()
