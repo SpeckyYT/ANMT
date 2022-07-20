@@ -22,6 +22,7 @@ dependencies = [
  "ffprobe",
  "image",
  "json",
+ "rayon",
 ]
 
 [[package]]

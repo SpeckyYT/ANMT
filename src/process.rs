@@ -1,8 +1,10 @@
 use std::path::Path;
 use std::time::{Instant, Duration};
-use crate::lib::{ Video, PixelUpdate, Optimization };
+use crate::lib::{ Video, PixelUpdate, Color, Optimization };
 use crate::util::ffmpeg_probe;
 
+use std::sync::{ Arc, Mutex };
+use rayon::prelude::*;
 use image::*;
 
 const DEFAULT_FPS: f64 = 24.0;
@@ -12,13 +14,10 @@ impl Video {
         let time = Instant::now();
 
         let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
-        let frames: Vec<_> = frames.iter().map(|f|
-            f.as_ref().map_err(|err| format!("Frame reading error: {}", err)).unwrap()
-        ).collect();
-    
+        if frames.is_empty() { return time.elapsed(); }
+        
         let frame_count = frames.len();
-    
-        let first_frame = image::open(frames[0].path()).unwrap();
+        let first_frame = open_frame(&frames[0].as_ref().unwrap().path());
 
         let (width, height) = first_frame.dimensions();
         let surface = (width as f64) * (height as f64);
@@ -32,16 +31,13 @@ impl Video {
 
         self.width = width;
         self.height = height;
-
-        let data = ffmpeg_probe(&self.path);
         
+        let data = ffmpeg_probe(&self.path);
         let mut default_fps = || {
             self.duration = (frame_count as f64) / DEFAULT_FPS;
             DEFAULT_FPS
         };
-
-        self.fps = if data.duration.is_some() {
-            let duration = data.duration.unwrap();
+        self.fps = if let Some(duration) = data.duration {
             let duration: Result<f64, _> = duration.parse();
             if let Ok(duration) = duration {
                 self.duration = duration;
@@ -53,27 +49,34 @@ impl Video {
             default_fps()
         };
 
-        let mut new_frames = vec![];
+        let i = Arc::new(Mutex::new(0));
 
-        for (frame_index, frame_entry) in frames.iter().enumerate().take(frame_count) {
-            let frame_path = frame_entry.path();
-            let frame = image::open(frame_path).expect("Failed to read frame");
+        let new_frames: Vec<_> = frames.par_iter().map(|frame_path| {
+            let frame = open_frame(&frame_path
+                .as_ref()
+                .expect("Frame reading error")
+                .path()
+            );
             let resized = frame.resize(width as u32, height as u32, self.filter.to_filter_type());
-            let resized = resized.to_rgba8();
-            let pixels = resized.pixels();
+            let rgb8 = resized.to_rgb8();
+            let pixels = rgb8.pixels();
 
-            let mut output: Vec<[u8; 4]> = Vec::new();
+            let mut output = Vec::new();
+
             for pixel in pixels {
                 output.push(flatten_color(&pixel.0, self.color_precision));
             }
-            new_frames.push(output);
-            self.log_percent("Frames resized", frame_index + 1, frame_count);
-        }
+            
+            let mut lock = i.lock().unwrap();
+            *lock += 1;
+            self.log_percent("Loaded, resized, processed image", *lock, frames.len());
 
-        for fr in 0..new_frames.len() {
-            let current_frame = &new_frames[fr];
-            let previous_frame = new_frames.get(fr - 1);
-            let next_frame = new_frames.get(fr + 1);
+            output
+        }).collect();
+
+        for (index, current_frame) in new_frames.iter().enumerate() {
+            let previous_frame = new_frames.get(index - 1);
+            let next_frame = new_frames.get(index + 1);
     
             let mut changes = Vec::new();
     
@@ -102,11 +105,16 @@ impl Video {
     
             self.frames.push(changes);
     
-            self.log_percent("Frames processed", fr + 1, frame_count);
+            self.log_percent("Frames optimized and ", index + 1, frame_count);
         }
 
         time.elapsed()
     }    
+}
+
+fn open_frame(path: &Path) -> image::DynamicImage {
+    image::open(path)
+    .expect("Failed opening frame")
 }
 
 fn index_to_position(index: usize, width: usize) -> (usize, usize) {
@@ -116,16 +124,15 @@ fn index_to_position(index: usize, width: usize) -> (usize, usize) {
 }
 
 fn flatten_int(number: u8, bits: u8) -> u8 { // (2^bits + 1) steps
-    if bits >= 8 { return number }
+    // if bits >= 8 { return number }
     let max = 2u128.pow(9u32 - bits as u32);
     ((number as f32 / max as f32).round() * max as f32) as u8
 }
 
-fn flatten_color(color: &[u8; 4], bits: u8) -> [u8; 4] {
-    [
-        flatten_int(color[0], bits),
-        flatten_int(color[1], bits),
-        flatten_int(color[2], bits),
-        color[3],
-    ]
+fn flatten_color(color: &[u8; 3], bits: u8) -> Color {
+    Color {
+        r: flatten_int(color[0], bits),
+        g: flatten_int(color[1], bits),
+        b: flatten_int(color[2], bits),
+    }
 }

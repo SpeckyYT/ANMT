@@ -20,9 +20,16 @@ pub struct Video {
     pub max_pixels: u32,
 }
 
+#[derive(Eq, PartialEq, Copy, Clone)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
 pub struct PixelUpdate {
     pub position: (u8, u8),
-    pub color: [u8; 4],
+    pub color: Color,
 }
 
 impl Video {
