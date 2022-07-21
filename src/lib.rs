@@ -80,8 +80,10 @@ impl Video {
         );
     }
     pub fn log_final(&self) {
+        let required_frames = self.frames.iter().filter(|f| !f.is_empty()).count();
+
         self.log_empty();
-        self.log(format!("{} frames", self.frames.len()));
+        self.log(format!("({}/{}) total frames / required frames ({}%)", self.frames.len(), required_frames, 100 * required_frames / self.frames.len()));
         self.log(format!("{} frames per second", self.fps));
         self.log(format!("{} seconds duration", self.duration));
         self.log(format!("{} pixels ({}x{})", self.width as u16 * self.height as u16, self.width, self.height));

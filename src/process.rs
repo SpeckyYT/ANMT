@@ -5,7 +5,7 @@ use crate::util::ffmpeg_probe;
 
 use std::sync::{ Arc, Mutex };
 use rayon::prelude::*;
-use image::*;
+use image::GenericImageView;
 
 const DEFAULT_FPS: f64 = 24.0;
 
@@ -57,15 +57,10 @@ impl Video {
                 .expect("Frame reading error")
                 .path()
             );
-            let resized = frame.resize(width as u32, height as u32, self.filter.to_filter_type());
+            let resized = frame.resize_exact(self.width as u32, self.height as u32, self.filter.to_filter_type());
             let rgb8 = resized.to_rgb8();
             let pixels = rgb8.pixels();
-
-            let mut output = Vec::new();
-
-            for pixel in pixels {
-                output.push(flatten_color(&pixel.0, self.color_precision));
-            }
+            let output = pixels.par_bridge().map(|pixel| flatten_color(&pixel.0, self.color_precision)).collect::<Vec<_>>();
             
             let mut lock = i.lock().unwrap();
             *lock += 1;
@@ -80,55 +75,59 @@ impl Video {
     
             let mut changes = Vec::new();
     
-            for i in 0..current_frame.len() {
+            for (i, current_pixel) in current_frame.iter().enumerate() {
                 match self.optimization {
                     Optimization::None => (),
                     Optimization::Forward => {
                         if let Some(previous_frame) = previous_frame {
-                            if current_frame[i] == previous_frame[i] { continue }
+                            if current_pixel == &previous_frame[i] { continue }
                         }
                     },
                     Optimization::Backward => {
                         if let Some(next_frame) = next_frame {
-                            if current_frame[i] == next_frame[i] { continue }
+                            if current_pixel == &next_frame[i] { continue }
                         }
                     },
                     Optimization::Both => {
                         if let (Some(previous_frame), Some(next_frame)) = (previous_frame, next_frame) {
-                            if current_frame[i] == previous_frame[i] && current_frame[i] == next_frame[i] { continue }
+                            if current_pixel == &previous_frame[i] && current_pixel == &next_frame[i] { continue }
                         }
                     }
                 }
                 let (x, y) = index_to_position(i, self.width);
-                changes.push(PixelUpdate { position: (x as u8, y as u8), color: current_frame[i] });
+                changes.push(PixelUpdate { position: (x as u8, y as u8), color: *current_pixel });
             }
-    
+
             self.frames.push(changes);
     
-            self.log_percent("Frames optimized and ", index + 1, frame_count);
+            self.log_percent("Frames optimized", index + 1, frame_count);
         }
 
         time.elapsed()
     }    
 }
 
+#[inline(always)]
 fn open_frame(path: &Path) -> image::DynamicImage {
     image::open(path)
     .expect("Failed opening frame")
 }
 
+#[inline(always)]
 fn index_to_position(index: usize, width: usize) -> (usize, usize) {
     let y = index / width;
     let x = index % width;
     (x, y)
 }
 
+#[inline(always)]
 fn flatten_int(number: u8, bits: u8) -> u8 { // (2^bits + 1) steps
     // if bits >= 8 { return number }
     let max = 2u128.pow(9u32 - bits as u32);
     ((number as f32 / max as f32).round() * max as f32) as u8
 }
 
+#[inline(always)]
 fn flatten_color(color: &[u8; 3], bits: u8) -> Color {
     Color {
         r: flatten_int(color[0], bits),
