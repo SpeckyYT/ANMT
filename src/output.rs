@@ -24,7 +24,7 @@ impl Video {
         for frame in &self.frames {
             let mut txt_current_frame = Vec::new();
             for PixelUpdate { position, color } in frame {
-                txt_current_frame.push(format!("{},{},{},{},{}", position.0, position.1, color.r, color.b, color.g));
+                txt_current_frame.push(format!("{},{},{},{},{}", position.0, position.1, color.r, color.g, color.b));
             }
             txt.push_str(&txt_current_frame.join(":"));
             txt.push('\n');
@@ -48,8 +48,8 @@ impl Video {
                 anmt.push(position.0 + 1);
                 anmt.push(position.1 + 1);
                 anmt.push(color.r);
-                anmt.push(color.b);
                 anmt.push(color.g);
+                anmt.push(color.b);
             }
         }
         write_file_u8(
