@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Instant, Duration};
 use std::fs::File;
 use json::{object, array};
-// use rayon::prelude::*;
+use rayon::prelude::*;
 
 use crate::lib::PixelUpdate;
 use crate::Video;
@@ -21,14 +21,28 @@ impl Video {
     fn write_txt(self: &Video, output_folder: &Path) {
         let mut txt = String::new();
         txt.push_str(format!("{},{},{}\n", self.width, self.height, self.fps).as_str());
-        for frame in &self.frames {
-            let mut txt_current_frame = Vec::new();
-            for PixelUpdate { position, color } in frame {
-                txt_current_frame.push(format!("{},{},{},{},{}", position.0, position.1, color.r, color.g, color.b));
-            }
-            txt.push_str(&txt_current_frame.join(":"));
-            txt.push('\n');
-        }
+
+        txt.push_str(
+            self.frames.iter().par_bridge().map(|frame| {
+                frame.iter()
+                .map(|PixelUpdate { position, color }|
+                    format!(
+                        "{},{},{},{},{}",
+                        position.0,
+                        position.1,
+                        color.r,
+                        color.g,
+                        color.b
+                    )
+                )
+                .collect::<Vec<String>>()
+                .join(":")
+            })
+            .collect::<Vec<String>>()
+            .join("\n")
+            .as_str()
+        );
+
         write_file_u8(
             &output_folder.join(self.file_name("txt")),
             txt.as_bytes(),
