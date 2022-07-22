@@ -1,7 +1,7 @@
 extract obj_props
 
 import '../pckp_libraries/canvas'
-speed = import '../pckp_libraries/speed'
+// speed = import '../pckp_libraries/speed'
 
 numberize_array = (array:@array) => array.map(v => v as @number)
 
@@ -25,7 +25,7 @@ impl @ANMT {
         log:@bool = true,
     ){
         let file = regex("\\r").replace($.readfile(filename),'')
-        let my_speed = speed(player_speed)
+        // let my_speed = speed(player_speed)
         let frames = file.split('\n')
         let data = frames.shift().split(',')
         let [ width, height, fps ] = numberize_array(data)
@@ -98,20 +98,20 @@ impl @ANMT {
         }
 
         while_loop(() => true, (){
-            match status {
+            -> match status {
                 ==0: null,
                 ==1: (){
-                    if lookup < frames.length {
+                    -> if lookup < frames.length {
                         lookup++
                     }
                 }(),
                 ==2: (){
-                    if lookup > 0 {
+                    -> if lookup > 0 {
                         lookup--
                     }
                 }(),
             }
-        }, delay = ceil_dec(1/fps,0.01))
+        }, delay = ceil_dec(1/fps, 0.01))
 
         if repeatable {
             on(lookup.reaches(-1), !{

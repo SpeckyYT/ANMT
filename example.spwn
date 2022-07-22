@@ -1,14 +1,21 @@
 import './lib/'
 
+screen = ?g
+
 my_video = @ANMT::new(
     filename = './videos/output/file.txt',
-    x = 240,
-    y = 120,
-    scaling = 0.4,
+    x = -120,
+    y = 30,
+    scaling = 0.3,
     repeatable = false,
     use_lookup = true,
     use_groups = false, // uses groups instead of color channels for canvas
+    groups = [screen],
 )
+
+-> screen.lock_to_player(lock_x = true, lock_y = false)
+-> toggle_bg_effect()
+-> hide_player()
 
 my_video.lookup.display(150,-15)
 my_video.status.display(150,-45)

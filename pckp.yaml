@@ -6,6 +6,6 @@ version: 0.0.1
 folders:
   - lib
 
-dependencies:
-  - url: https://github.com/SpeckyYT/SPWN-canvas
-  - url: https://github.com/SpeckyYT/SPWN-speed
+# dependencies:
+# - url: https://github.com/SpeckyYT/SPWN-canvas
+# - url: https://github.com/SpeckyYT/SPWN-speed
