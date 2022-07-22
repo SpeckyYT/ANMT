@@ -2,7 +2,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, Duration};
 use std::fs::File;
-use json::{object, array};
+use json::{object, array, Array};
 use rayon::prelude::*;
 
 use crate::lib::PixelUpdate;
@@ -76,23 +76,26 @@ impl Video {
             "width" => self.width,
             "height" => self.height,
             "fps" => self.fps,
-            "frames" => array![],
         };
-        for frame in &self.frames {
-            json["frames"].push(array![]).unwrap();
-            for PixelUpdate { position, color } in frame {
-                let json_last_frame = json["frames"].len()-1;
-                json["frames"][json_last_frame].push(
-                    array![
-                        position.0,
-                        position.1,
-                        color.r,
-                        color.g,
-                        color.b,
-                    ]
-                ).unwrap();
-            }
-        }
+        json.insert(
+            "frames",
+            self.frames.par_iter().map(|frame| {
+                let mut json_frame = array![];
+                for PixelUpdate { position, color } in frame {
+                    json_frame.push(
+                        array![
+                            position.0,
+                            position.1,
+                            color.r,
+                            color.g,
+                            color.b,
+                        ]
+                    ).unwrap();
+                }
+                json_frame
+            })
+            .collect::<Array>()
+        ).unwrap();
         write_file_u8(
             &output_folder.join(self.file_name("json")),
             json.to_string().as_bytes(),
