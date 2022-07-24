@@ -9,7 +9,7 @@ use std::fs;
 use clap::Command;
 use clap::ValueHint;
 use clap::arg;
-use lib::{ Video, Optimization, Filter };
+use lib::{ Video, Optimization, Filter, Output };
 
 const DEFAULT_OPTIMIZATION: Optimization = Optimization::Forward;
 const DEFAULT_FILTER: Filter = Filter::Linear;
@@ -92,10 +92,15 @@ fn main() {
     }
 
     if !skip_extract {
-        video.extract_time = video.extract_frames(&frames_folder);
+        video.time.push(("extract", video.extract_frames(&frames_folder)))
     }
-    video.process_time = video.process_frames(&frames_folder);
-    video.output_time = video.output_frames(&video_folder);
+
+    let time = video.process_frames(&frames_folder);
+    video.time.push(("process", time));
+    
+    video.time.push(("output txt", video.output_frames(&video_folder, Output::Txt)));
+    video.time.push(("output anmt", video.output_frames(&video_folder, Output::Anmt)));
+    video.time.push(("output json", video.output_frames(&video_folder, Output::Json)));
 
     video.log_final();
 }

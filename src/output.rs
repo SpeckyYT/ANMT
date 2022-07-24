@@ -2,19 +2,22 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, Duration};
 use std::fs::File;
-use json::{object, array, Array};
+use json::{object, array};
 use rayon::prelude::*;
 
 use crate::lib::PixelUpdate;
+use crate::lib::Output;
 use crate::Video;
 
 impl Video {
-    pub fn output_frames(&self, output_folder: &Path) -> Duration {
+    pub fn output_frames(&self, output_folder: &Path, output_type: Output) -> Duration {
         let time = Instant::now();
 
-        self.write_txt(output_folder);
-        self.write_anmt(output_folder);
-        self.write_json(output_folder);
+        match output_type {
+            Output::Txt => self.write_txt(output_folder),
+            Output::Anmt => self.write_anmt(output_folder),
+            Output::Json => self.write_json(output_folder),
+        }
 
         time.elapsed()
     }
@@ -80,21 +83,18 @@ impl Video {
         json.insert(
             "frames",
             self.frames.par_iter().map(|frame| {
-                let mut json_frame = array![];
-                for PixelUpdate { position, color } in frame {
-                    json_frame.push(
-                        array![
-                            position.0,
-                            position.1,
-                            color.r,
-                            color.g,
-                            color.b,
-                        ]
-                    ).unwrap();
-                }
-                json_frame
+                frame.par_iter().map(|PixelUpdate { position, color }| {
+                    array![
+                        position.0,
+                        position.1,
+                        color.r,
+                        color.g,
+                        color.b,
+                    ]
+                })
+                .collect::<Vec<_>>()
             })
-            .collect::<Array>()
+            .collect::<Vec<_>>()
         ).unwrap();
         write_file_u8(
             &output_folder.join(self.file_name("json")),

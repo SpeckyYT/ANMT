@@ -10,9 +10,7 @@ pub struct Video {
     pub duration: f64,
     pub fps: f64,
     pub quiet: bool,
-    pub extract_time: Duration,
-    pub process_time: Duration,
-    pub output_time: Duration,
+    pub time: Vec<OutputTime>,
     pub skip_extract: bool,
     pub optimization: Optimization,
     pub filter: Filter,
@@ -50,9 +48,7 @@ impl Video {
             duration: 0.0,
             fps: 0.0,
             quiet,
-            extract_time: Duration::default(),
-            process_time: Duration::default(),
-            output_time: Duration::default(),
+            time: Vec::default(),
             skip_extract,
             optimization,
             filter,
@@ -88,12 +84,12 @@ impl Video {
         self.log(format!("{} seconds duration", self.duration));
         self.log(format!("{} pixels ({}x{})", self.width as u16 * self.height as u16, self.width, self.height));
         self.log(format!("{} color change triggers", self.frames.iter().map(|f| f.len()).sum::<usize>()));
-        self.log(format!("{}s extract time ({} average fps)", self.extract_time.as_secs_f64(), fps(self.extract_time, self.frames.len())));
-        self.log(format!("{}s process time ({} average fps)", self.process_time.as_secs_f64(), fps(self.process_time, self.frames.len())));
-        self.log(format!("{}s output time ({} average fps)", self.output_time.as_secs_f64(), fps(self.output_time, self.frames.len())));
         self.log(format!("{} bits color precision", self.color_precision));
         self.log(format!("'{}' optimizazion", self.optimization.to_str()));
         self.log(format!("'{}' resizing filter", self.filter.to_str()));
+        for (name, duration) in &self.time {
+            self.log(format!("{}s {} time ({} average fps)", duration.as_secs_f64(), name, fps(*duration, self.frames.len())));
+        }
     }
     pub fn file_name(&self, extension: &str) -> String {
         let file_name = self.path.file_stem().unwrap().to_str().unwrap();
@@ -159,3 +155,11 @@ impl Filter {
         }
     }
 }
+
+pub enum Output {
+    Txt,
+    Anmt,
+    Json,
+}
+
+pub type OutputTime = (&'static str, Duration);

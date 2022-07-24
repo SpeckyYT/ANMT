@@ -5,7 +5,7 @@ use crate::util::ffmpeg_probe;
 
 use std::sync::{ Arc, Mutex };
 use rayon::prelude::*;
-use image::GenericImageView;
+use image::{ DynamicImage, GenericImageView };
 
 const DEFAULT_FPS: f64 = 24.0;
 
@@ -108,7 +108,7 @@ impl Video {
 }
 
 #[inline(always)]
-fn open_frame(path: &Path) -> image::DynamicImage {
+fn open_frame(path: &Path) -> DynamicImage {
     image::open(path)
     .expect("Failed opening frame")
 }
