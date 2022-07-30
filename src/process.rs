@@ -1,22 +1,24 @@
 use std::path::Path;
 use std::time::{Instant, Duration};
-use crate::lib::{ Video, PixelUpdate, Color, Optimization };
+use crate::data::{ Video, PixelUpdate, Optimization };
 use crate::util::ffmpeg_probe;
+use crate::util::open_frame;
+use crate::util::flatten_color;
 
 use std::sync::{ Arc, Mutex };
 use rayon::prelude::*;
-use image::{ DynamicImage, GenericImageView };
+use image::GenericImageView;
 
 const DEFAULT_FPS: f64 = 24.0;
 
 impl Video {
-    pub fn process_frames(&mut self, frames_folder: &Path) -> Duration {
+    pub fn process_frames(&mut self, frames_folder: &Path) -> (Vec<Vec<PixelUpdate>>, Duration) {
         let time = Instant::now();
 
         let frames: Vec<_> = frames_folder.read_dir().expect("Failed reading frames directory at process_frames").collect();
-        if frames.is_empty() { return time.elapsed(); }
-        
-        let frame_count = frames.len();
+        if frames.is_empty() { return (Vec::default(), time.elapsed()); }
+        self.frame_count = frames.len();
+
         let first_frame = open_frame(&frames[0].as_ref().unwrap().path());
 
         let (width, height) = first_frame.dimensions();
@@ -34,14 +36,14 @@ impl Video {
         
         let data = ffmpeg_probe(&self.path);
         let mut default_fps = || {
-            self.duration = (frame_count as f64) / DEFAULT_FPS;
+            self.duration = (self.frame_count as f64) / DEFAULT_FPS;
             DEFAULT_FPS
         };
         self.fps = if let Some(duration) = data.duration {
             let duration: Result<f64, _> = duration.parse();
             if let Ok(duration) = duration {
                 self.duration = duration;
-                frame_count as f64 / duration
+                self.frame_count as f64 / duration
             } else {
                 default_fps()
             }
@@ -60,21 +62,31 @@ impl Video {
             let resized = frame.resize_exact(self.width as u32, self.height as u32, self.filter.to_filter_type());
             let rgb8 = resized.to_rgb8();
             let pixels = rgb8.pixels();
-            let output = pixels.par_bridge().map(|pixel| flatten_color(&pixel.0, self.color_precision)).collect::<Vec<_>>();
+            let output = pixels.enumerate().par_bridge()
+                .map(
+                    |(i, pixel)|
+                    flatten_color(&pixel.0, self.color_precision)
+                    .to_pixel_update(i, self.width)
+                ).collect::<Vec<_>>();
             
             let mut lock = i.lock().unwrap();
             *lock += 1;
-            self.log_percent("Loaded, resized, processed image", *lock, frames.len());
+            self.log_percent("Loaded, resized, processed image", *lock, self.frame_count);
 
             output
         }).collect();
 
-        for (index, current_frame) in new_frames.iter().enumerate() {
-            let previous_frame = new_frames.get(index - 1);
-            let next_frame = new_frames.get(index + 1);
-    
+        (new_frames, time.elapsed())
+    }
+    pub fn optimize_frames(&mut self, frames: Vec<Vec<PixelUpdate>>) -> (Vec<Vec<PixelUpdate>>, Duration) {
+        let time = Instant::now();
+
+        let changes = frames.iter().enumerate().map(|(i, current_frame)| {
+            let previous_frame = frames.get(i - 1);
+            let next_frame = frames.get(i + 1);
+
             let mut changes = Vec::new();
-    
+
             for (i, current_pixel) in current_frame.iter().enumerate() {
                 match self.optimization {
                     Optimization::None => (),
@@ -94,44 +106,14 @@ impl Video {
                         }
                     }
                 }
-                let (x, y) = index_to_position(i, self.width);
-                changes.push(PixelUpdate { position: (x as u8, y as u8), color: *current_pixel });
+                changes.push(*current_pixel);
             }
 
-            self.frames.push(changes);
-    
-            self.log_percent("Frames optimized", index + 1, frame_count);
-        }
+            self.log_percent("Frames optimized", i + 1, self.frame_count);
 
-        time.elapsed()
+            changes
+        }).collect();
+
+        (changes, time.elapsed())
     }    
-}
-
-#[inline(always)]
-fn open_frame(path: &Path) -> DynamicImage {
-    image::open(path)
-    .expect("Failed opening frame")
-}
-
-#[inline(always)]
-fn index_to_position(index: usize, width: usize) -> (usize, usize) {
-    let y = index / width;
-    let x = index % width;
-    (x, y)
-}
-
-#[inline(always)]
-fn flatten_int(number: u8, bits: u8) -> u8 { // (2^bits + 1) steps
-    // if bits >= 8 { return number }
-    let max = 2u128.pow(9u32 - bits as u32);
-    ((number as f32 / max as f32).round() * max as f32) as u8
-}
-
-#[inline(always)]
-fn flatten_color(color: &[u8; 3], bits: u8) -> Color {
-    Color {
-        r: flatten_int(color[0], bits),
-        g: flatten_int(color[1], bits),
-        b: flatten_int(color[2], bits),
-    }
 }

@@ -4,7 +4,7 @@ use std::process::Stdio;
 use std::time::Duration;
 use std::time::Instant;
 
-use crate::lib::Video;
+use crate::Video;
 
 impl Video {
     pub fn extract_frames(&self, frames_folder: &Path) -> Duration {
@@ -23,8 +23,7 @@ impl Video {
         .spawn()
         .expect("Failed to execute FFMPEG")
         .wait_with_output()
-        .map_err(|err| format!("Error while running FFMPEG (probably caused by unsupported video format): {}", err))
-        .unwrap();
+        .expect("FFMPEG failed (probably unsupported video format)");
 
         time.elapsed()
     }

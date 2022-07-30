@@ -5,8 +5,8 @@ use std::fs::File;
 use json::{object, array};
 use rayon::prelude::*;
 
-use crate::lib::PixelUpdate;
-use crate::lib::Output;
+use crate::data::PixelUpdate;
+use crate::Output;
 use crate::Video;
 
 impl Video {
@@ -62,8 +62,8 @@ impl Video {
         for frame in &self.frames {
             anmt.push(0);
             for PixelUpdate { position, color } in frame {
-                anmt.push(position.0 + 1);
-                anmt.push(position.1 + 1);
+                anmt.push(position.0 as u8 + 1);
+                anmt.push(position.1 as u8 + 1);
                 anmt.push(color.r);
                 anmt.push(color.g);
                 anmt.push(color.b);

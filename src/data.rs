@@ -5,6 +5,7 @@ use image::imageops::FilterType;
 pub struct Video {
     pub path: PathBuf,
     pub frames: Vec<Vec<PixelUpdate>>,
+    pub frame_count: usize,
     pub width: usize,
     pub height: usize,
     pub duration: f64,
@@ -25,8 +26,19 @@ pub struct Color {
     pub b: u8,
 }
 
+impl Color {
+    pub fn to_pixel_update(&self, index: usize, width: usize) -> PixelUpdate {
+        let (x, y) = crate::util::index_to_position(index, width);
+        PixelUpdate {
+            position: (x, y),
+            color: *self,
+        }
+    }
+}
+
+#[derive(Eq, PartialEq, Copy, Clone)]
 pub struct PixelUpdate {
-    pub position: (u8, u8),
+    pub position: (usize, usize),
     pub color: Color,
 }
 
@@ -43,6 +55,7 @@ impl Video {
         Video {
             path: file_path.to_path_buf(),
             frames: Vec::new(),
+            frame_count: 0,
             width: 0,
             height: 0,
             duration: 0.0,
@@ -79,7 +92,7 @@ impl Video {
         let required_frames = self.frames.iter().filter(|f| !f.is_empty()).count();
 
         self.log_empty();
-        self.log(format!("({}/{}) total frames / required frames ({}%)", self.frames.len(), required_frames, 100 * required_frames / self.frames.len()));
+        self.log(format!("({}/{}) total frames / required frames ({}%)", self.frame_count, required_frames, 100 * required_frames / self.frame_count));
         self.log(format!("{} frames per second", self.fps));
         self.log(format!("{} seconds duration", self.duration));
         self.log(format!("{} pixels ({}x{})", self.width as u16 * self.height as u16, self.width, self.height));
@@ -88,7 +101,7 @@ impl Video {
         self.log(format!("'{}' optimizazion", self.optimization.to_str()));
         self.log(format!("'{}' resizing filter", self.filter.to_str()));
         for (name, duration) in &self.time {
-            self.log(format!("{}s {} time ({} average fps)", duration.as_secs_f64(), name, fps(*duration, self.frames.len())));
+            self.log(format!("{}s {} time ({} average fps)", duration.as_secs_f64(), name, fps(*duration, self.frame_count)));
         }
     }
     pub fn file_name(&self, extension: &str) -> String {
