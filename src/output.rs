@@ -6,22 +6,11 @@ use json::{object, array};
 use rayon::prelude::*;
 
 use crate::data::PixelUpdate;
-use crate::Output;
 use crate::Video;
 
 impl Video {
-    pub fn output_frames(&self, output_folder: &Path, output_type: Output) -> Duration {
+    pub fn output_txt(self: &Video, output_folder: &Path) -> Duration {
         let time = Instant::now();
-
-        match output_type {
-            Output::Txt => self.write_txt(output_folder),
-            Output::Anmt => self.write_anmt(output_folder),
-            Output::Json => self.write_json(output_folder),
-        }
-
-        time.elapsed()
-    }
-    fn write_txt(self: &Video, output_folder: &Path) {
         let mut txt = String::new();
         txt.push_str(format!("{},{},{}\n", self.width, self.height, self.fps).as_str());
 
@@ -45,13 +34,15 @@ impl Video {
             .join("\n")
             .as_str()
         );
-
         write_file_u8(
             &output_folder.join(self.file_name("txt")),
             txt.as_bytes(),
         );
+
+        time.duration_since(Instant::now())
     }
-    fn write_anmt(self: &Video, output_folder: &Path) {
+    pub fn output_anmt(self: &Video, output_folder: &Path) -> Duration {
+        let time = Instant::now();
         let mut anmt = vec![
             self.width as u8,
             self.height as u8,
@@ -73,8 +64,11 @@ impl Video {
             &output_folder.join(self.file_name("anmt")),
             &anmt,
         );
+
+        time.duration_since(Instant::now())
     }
-    fn write_json(self: &Video, output_folder: &Path) {
+    pub fn output_json(self: &Video, output_folder: &Path) -> Duration {
+        let time = Instant::now();
         let mut json = object!{
             "width" => self.width,
             "height" => self.height,
@@ -100,6 +94,8 @@ impl Video {
             &output_folder.join(self.file_name("json")),
             json.to_string().as_bytes(),
         );
+
+        time.duration_since(Instant::now())
     }
 }
 

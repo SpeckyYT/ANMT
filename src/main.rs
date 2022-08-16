@@ -9,7 +9,7 @@ use std::fs;
 use clap::Command;
 use clap::ValueHint;
 use clap::arg;
-use data::{ Video, Optimization, Filter, Output };
+use data::{ Video, Optimization, Filter };
 
 const DEFAULT_OPTIMIZATION: Optimization = Optimization::Forward;
 const DEFAULT_FILTER: Filter = Filter::Linear;
@@ -58,14 +58,14 @@ fn main() {
         None => DEFAULT_FILTER,
     };
     let color_precision = match matches.value_of("bits") {
-        Some(b) if b.len() == 1 => match b.chars().next().unwrap() {
-            '1'..='8' => b.parse().unwrap(),
+        Some(b) => match b.parse() {
+            Ok(b) if (1..=8).contains(&b) => b,
             _ => DEFAULT_COLOR_PRECISION,
         },
-        _ => DEFAULT_COLOR_PRECISION,
+        None => DEFAULT_COLOR_PRECISION,
     };
     let max_pixels = match matches.value_of("pixels") {
-        Some(m) => m.parse::<u32>().unwrap_or(DEFAULT_PIXELS),
+        Some(m) => m.parse().unwrap_or(DEFAULT_PIXELS),
         None => DEFAULT_PIXELS,
     };
 
@@ -102,9 +102,9 @@ fn main() {
     video.frames = changes;
     video.time.push(("optimizing", time));
 
-    video.time.push(("output txt", video.output_frames(&video_folder, Output::Txt)));
-    video.time.push(("output anmt", video.output_frames(&video_folder, Output::Anmt)));
-    video.time.push(("output json", video.output_frames(&video_folder, Output::Json)));
+    video.time.push(("output txt", video.output_txt(&video_folder)));
+    video.time.push(("output anmt", video.output_anmt(&video_folder)));
+    video.time.push(("output json", video.output_json(&video_folder)));
 
     video.log_final();
 }

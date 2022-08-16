@@ -11,7 +11,7 @@ pub struct Video {
     pub duration: f64,
     pub fps: f64,
     pub quiet: bool,
-    pub time: Vec<OutputTime>,
+    pub time: Vec<(&'static str, Duration)>,
     pub skip_extract: bool,
     pub optimization: Optimization,
     pub filter: Filter,
@@ -84,7 +84,7 @@ impl Video {
                 message,
                 current,
                 total,
-                100 * current / total,
+                if total > 0 { 100 * current / total } else { 100 },
             )
         );
     }
@@ -168,11 +168,3 @@ impl Filter {
         }
     }
 }
-
-pub enum Output {
-    Txt,
-    Anmt,
-    Json,
-}
-
-pub type OutputTime = (&'static str, Duration);
