@@ -1,11 +1,22 @@
 %YAML 1.2
 ---
 
+# dependencies:
+
+# - url: https://github.com/SpeckyYT/ANMT
 name: anmt
 version: 0.0.1
 folders:
   - lib
 
-# dependencies:
-# - url: https://github.com/SpeckyYT/SPWN-canvas
 # - url: https://github.com/SpeckyYT/SPWN-speed
+name: speed
+version: 0.0.1
+folders:
+  - lib
+
+# - url: https://github.com/SpeckyYT/SPWN-canvas
+name: canvas
+version: 0.0.1
+folders:
+  - src

@@ -1,6 +1,6 @@
 extract obj_props
 
-import '../pckp_libraries/canvas'
+import './canvas.spwn'
 // speed = import '../pckp_libraries/speed'
 
 numberize_array = (array:@array) => array.map(v => v as @number)

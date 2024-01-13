@@ -1,6 +1,8 @@
-import './lib/'
+import './lib/lib.spwn'
 
 screen = ?g
+
+// You need to edit `filename` to your file.txt
 
 my_video = @ANMT::new(
     filename = './videos/output/file.txt',
