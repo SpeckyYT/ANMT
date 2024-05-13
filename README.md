@@ -2,6 +2,12 @@
 
 Videos to Geometry Dash level converter!
 
+## ANMT IS DISCONTINUED
+
+| There has been no progress for a really long time.
+|-
+| You won't get any support for this project.
+
 ## Disclaimer
 
 | You're responsible for your own actions.
